@@ -1,3 +1,12 @@
+### ADD CUSTOM IGNORED FILES HERE ###
+**/*.png
+**/data/**
+**/.vscode/**
+**/checkpoints/**
+**/plots/**
+*.txt
+**/*.err
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
