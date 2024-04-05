@@ -22,8 +22,8 @@ print(metrics.seg.maps)
 # Test prediction on an image
 results = model('https://ultralytics.com/images/bus.jpg')
 
-if os.path.exists("examples") == False:
-    os.makedirs("examples")
+if os.path.exists("models/examples") == False:
+    os.makedirs("models/examples")
 
 # Export trained model
-model.export("examples/custom-coco128-seg.pt")
+model.export()

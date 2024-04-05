@@ -1,0 +1,20 @@
+# Train/val/test sets as 1) dir: path/to/imgs, 2) file: path/to/imgs.txt, or 3) list: [path/to/imgs1, path/to/imgs2, ..]
+path: ../datasets/NAPLab-LiDAR  # dataset root dir
+train: images/train             # train images (relative to 'path') 128 images
+val: images/val                 # val images (relative to 'path') 128 images
+test: images/test               # test images (optional)
+
+# Classes
+names:
+  0: car
+  1: truck
+  2: bus
+  3: motorcycle
+  4: bicycle
+  5: scooter
+  6: person
+  7: rider
+
+# Download script/URL (optional)
+# Below is an example of how it would look like
+# download: https://ultralytics.com/assets/coco128-seg.zip
