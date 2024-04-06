@@ -6,8 +6,8 @@
 #SBATCH --partition=GPUQ                    # Asking for a GPU
 #SBATCH --mem=32G                           # Asking for 32GB RAM
 #SBATCH --nodes=1                           # Asking for 1 nodes
-#SBATCH --output=results/output.txt         # Specifying 'stdout'
-#SBATCH --error=results/errors.err          # Specifying 'stderr'
+#SBATCH --output=slurm/results/yolov8_example_output.txt         # Specifying 'stdout'
+#SBATCH --error=slurm/results/yolov8_example_errors.err          # Specifying 'stderr'
 
 #SBATCH --mail-user=cl@stud.ntnu.no
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -23,6 +23,7 @@ module purge
 
 # Running your python file
 module load Anaconda3/2023.09-0
+module load cuDNN/8.8.0.121-CUDA-12.0.0
 conda activate ~/conda_envs/tdt4265-group32/
 conda list
 pip list

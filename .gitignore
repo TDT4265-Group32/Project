@@ -3,6 +3,7 @@ datasets/**
 models/**
 runs/**
 *.pt
+slurm/results/**
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -12,5 +12,5 @@ Chosen project: Object detection with LiDAR Data from Trondheim
 
 ## Path to data
 
-* IDUN: ~/../../cluster/projects/vc/data/ad/open/NAPLab-LiDAR
+* IDUN: ~/../../projects/vc/data/ad/open/NAPLab-LiDAR
 * Cybele: ~/../../datasets/tdt4265/ad/NAPLab-LiDAR
