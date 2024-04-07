@@ -1,7 +1,7 @@
 #!/bin/sh
 #SBATCH --account=ie-idi
 #SBATCH --job-name=RUN_TDT4265_YOLOv8_EXAMPLE
-#SBATCH --time=0-00:15:00         # format: D-HH:MM:SS
+#SBATCH --time=0-01:00:00         # format: D-HH:MM:SS
 
 #SBATCH --partition=GPUQ                    # Asking for a GPU
 #SBATCH --mem=32G                           # Asking for 32GB RAM
@@ -27,4 +27,4 @@ module load cuDNN/8.8.0.121-CUDA-12.0.0
 conda activate ~/conda_envs/tdt4265-group32/
 conda list
 pip list
-python src/main.py
+python src/YOLOv8/main.py

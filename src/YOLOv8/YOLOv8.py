@@ -22,7 +22,7 @@ class ObjectDetection:
 
     def load_model(self, model_path='models/pretrained/yolov8n.pt'):
         
-        model = YOLO('models/pretrained/yolov8n.pt')
+        model = YOLO(model_path)
         model.fuse()
         
         return model
@@ -52,14 +52,24 @@ class ObjectDetection:
         """
         For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
         """
-        save_dir = save_path.split('/')[:-1]
-        filename = save_path.split('/')[-1]
-        save_dir = '/'.join(save_dir)
+        # Split the file path into root and extension
+
+        results = self.model(source=path, show=show, conf=conf)
         
-        if not os.path.exists(save_dir):
-            os.makedirs(save_dir)
+        if save_path is not None:
+            root, ext = os.path.splitext(save_path)
+
+            # If the extension is not empty, get the directory name
+            if ext:
+                save_dir = os.path.dirname(root)
+            else:
+                save_dir = root
         
-        results = self.model(source=path, show=show, conf=conf, project=save_dir, name=filename)
+            if not os.path.exists(save_dir):
+                os.makedirs(save_dir)
+
+            for idx, result in enumerate(results):
+                result.save(f'{save_dir}/prediction_{idx}.PNG')
 
         return results
     
