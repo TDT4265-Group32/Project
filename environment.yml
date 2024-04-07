@@ -20,3 +20,4 @@ dependencies:
     - seaborn>=0.11.0
     - pandas
     - supervision
+    - imageio
