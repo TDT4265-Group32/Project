@@ -1,29 +1,80 @@
 from ultralytics import YOLO
+
 import os
 import torch
+import cv2
 
-device = 'cuda' if torch.cuda.is_available() else 'cpu'
+"""
+This example script was inspired by Ultralytics tutorial on how to use yolov8
+"""
 
-# Load YOLOv8 model from pre-trained weights file
-model = YOLO('models/pretrained/yolov8n-seg.pt')
-# We can also use our own custom model: YOLO('path/to/model.pt')
+class ObjectDetection:
+    
+    def __init__(self):
+        
+        # Use this if we want to run OBD on camera
+        # self.capture_index = capture_index
+        
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+        print("Using Device: ", self.device)
+        
+        self.model = self.load_model()
 
-# Example of arguments, others can also be "CUDA", etc.. (Can be seen in configs/default_format.yml)
-result = model.train(data='coco128-seg.yaml', epochs=100, imgsz=640, device=device)
+    def load_model(self, model_path='models/pretrained/yolov8n.pt'):
+        
+        model = YOLO('models/pretrained/yolov8n.pt')
+        #model.fuse()
+        
+        return model
 
-# Since the model is already trained, we can use the model to predict (no input data is required as it is already trained)
-metrics = model.val()
-# Show metrics
-print(metrics.box.map)
-print(metrics.box.maps)
-print(metrics.seg.map)
-print(metrics.seg.maps)
+    def run_inference(self, source=1, show=True, conf=0.4, save=True):
+        """
+        For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
+        """
+        results = self.model(source=source, show=show, conf=conf, save=save)
+        
+        # for result in results:
+        #     boxes = result.boxes
+        #     masks = result.masks
+        #     keypoints = results.keypoints
+        #     probs = results.probs
+    
 
-# Test prediction on an image
-results = model('https://ultralytics.com/images/bus.jpg')
-
-if os.path.exists("models/examples") == False:
-    os.makedirs("models/examples")
-
-# Export trained model
-model.export()
+    # def predict(self, frame):
+    #     """
+    #     For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
+    #     """
+    #     results = self.model(frame)
+        
+    #     return results
+    
+    # def plot_bboxes(self, results, frame):
+        
+    #     xyxys = []
+    #     confidences = []
+    #     class_ids = []
+        
+    #     # Extract detections for person class
+    #     # Converting to cpu and numpy for plotting
+    #     for result in results:
+    #         boxes = result.boxes.cpu().numpy()
+            
+    #         # Bounding boxes (index 0-3 contains the coordinate for the four corners)
+    #         #xyxys = boxes.xyxy
+            
+    #         #for xyxy in xyxys:
+    #             # cv2.rectangle(frame, (int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])), (0, 255, 0))
+    #             # confidences.append(xyxy[4])
+    #             # class_ids.append(xyxy[5])
+            
+    #         xyxys.append(boxes.xyxy)
+    #         confidences.append(boxes.conf)
+    #         class_ids.append(boxes.cls)
+            
+            
+    #     return results[0].plot(), xyxys, confidences, class_ids
+    
+if __name__ == 'main':
+    objd = ObjectDetection()
+    
+    objd.run_inference()
