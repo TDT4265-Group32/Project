@@ -6,8 +6,8 @@
 #SBATCH --partition=GPUQ                    # Asking for a GPU
 #SBATCH --mem=32G                           # Asking for 32GB RAM
 #SBATCH --nodes=1                           # Asking for 1 nodes
-#SBATCH --output=slurm/results/yolov8_output.txt         # Specifying 'stdout'
-#SBATCH --error=slurm/results/yolov8_errors.err          # Specifying 'stderr'
+#SBATCH --output=slurm/results/yolov8_output-%j-$(date +'%Y%m%d%H%M').txt         # Specifying 'stdout'
+#SBATCH --error=slurm/results/yolov8_errors-%j-$(date +'%Y%m%d%H%M').err          # Specifying 'stderr'
 
 #SBATCH --mail-user=cl@stud.ntnu.no
 #SBATCH --mail-type=BEGIN,END,FAIL
