@@ -2,7 +2,7 @@ from ultralytics import YOLO
 
 import os
 import torch
-import cv2
+from tqdm import tqdm
 
 """
 This example script was inspired by Ultralytics tutorial on how to use yolov8
@@ -18,20 +18,22 @@ class ObjectDetection:
         self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         print("Using Device: ", self.device)
         
-        self.model = self.load_model()
+        self.load_model()
 
     def load_model(self, model_path='models/pretrained/yolov8n.pt'):
         
         model = YOLO(model_path)
         model.fuse()
         
+        self.model = model
+        
         return model
     
-    def train(self, yaml_path, epochs=100, imgsz=640):
+    def train(self, train_params):
         """
         For more, check out: https://docs.ultralytics.com/modes/train/
         """
-        result = self.model.train(data=yaml_path, epochs=epochs, imgsz=imgsz, device=self.device)
+        result = self.model.train(**train_params, device=self.device)
         
         return result
 
@@ -40,24 +42,26 @@ class ObjectDetection:
         For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
         """
         self.model(source=0, show=show, conf=conf)
-        
-        # for result in results:
-        #     boxes = result.boxes
-        #     masks = result.masks
-        #     keypoints = results.keypoints
-        #     probs = results.probs
-    
 
-    def predict(self, path, show=False, conf=0.4, save_path=None):
+
+    def validate(self, val_params):
+        """
+        For more, check out: https://docs.ultralytics.com/modes/val/
+        """
+        results = self.model.val(**val_params, device=self.device)
+        
+        return results
+
+    def predict(self, predict_params, results_path=None):
         """
         For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
         """
         # Split the file path into root and extension
 
-        results = self.model(source=path, show=show, conf=conf)
+        results = self.model.predict(**predict_params, device=self.device)
         
-        if save_path is not None:
-            root, ext = os.path.splitext(save_path)
+        if results_path is not None:
+            root, ext = os.path.splitext(results_path)
 
             # If the extension is not empty, get the directory name
             if ext:
@@ -68,31 +72,7 @@ class ObjectDetection:
             if not os.path.exists(save_dir):
                 os.makedirs(save_dir)
 
-            for idx, result in enumerate(results):
-                result.save(f'{save_dir}/prediction_{idx}.PNG')
+            for idx, result in tqdm(enumerate(results), total=len(results), desc=f'Saving result frames'):
+                result.save(f'{save_dir}/frame_{idx:06}.PNG')
 
         return results
-    
-    # def plot_bboxes(self, results, frame):
-        
-    #     xyxys = []
-    #     confidences = []
-    #     class_ids = []
-        
-    #     # Extract detections for person class
-    #     # Converting to cpu and numpy for plotting
-    #     for result in results:
-    #         boxes = result.boxes.cpu().numpy()
-            
-    #         xyxys.append(boxes.xyxy)
-    #         confidences.append(boxes.conf)
-    #         class_ids.append(boxes.cls)
-            
-            
-    #     return results[0].plot(), xyxys, confidences, class_ids
-
-    def export_model(self):
-        """
-        For more, check out: https://docs.ultralytics.com/modes/export/
-        """
-        self.model.export()
