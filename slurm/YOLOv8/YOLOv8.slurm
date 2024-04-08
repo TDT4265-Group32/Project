@@ -1,13 +1,13 @@
 #!/bin/sh
 #SBATCH --account=ie-idi
-#SBATCH --job-name=RUN_TDT4265_YOLOv8_EXAMPLE
+#SBATCH --job-name=RUN_TDT4265_YOLOv8
 #SBATCH --time=0-01:00:00         # format: D-HH:MM:SS
 
 #SBATCH --partition=GPUQ                    # Asking for a GPU
-#SBATCH --mem=32G                           # Asking for 32GB RAM
+#SBATCH --mem=64G                           # Asking for 32GB RAM
 #SBATCH --nodes=1                           # Asking for 1 nodes
-#SBATCH --output=slurm/results/yolov8_output-%j-$(date +'%Y%m%d%H%M').txt         # Specifying 'stdout'
-#SBATCH --error=slurm/results/yolov8_errors-%j-$(date +'%Y%m%d%H%M').err          # Specifying 'stderr'
+#SBATCH --output=slurm/results/yolov8_output-%x-%j-%N.txt         # Specifying 'stdout'
+#SBATCH --error=slurm/results/yolov8_errors-%x-%j-%N.err          # Specifying 'stderr'
 
 #SBATCH --mail-user=cl@stud.ntnu.no
 #SBATCH --mail-type=BEGIN,END,FAIL
@@ -25,8 +25,6 @@ module purge
 module load Anaconda3/2023.09-0
 module load cuDNN/8.8.0.121-CUDA-12.0.0
 conda activate ~/conda_envs/tdt4265-group32/
-conda list
-pip list
 cp -r runs old_runs
 rm -rf runs
 python src/YOLOv8/train.py --dataset_path datasets/NAPLab-LiDAR --train_config configs/YOLOv8/NAPLab-LiDAR/train.json

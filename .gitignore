@@ -1,6 +1,7 @@
 # Custom
 datasets/**
 runs/**
+old_runs/**
 *.pt
 slurm/results/**
 results/**
