@@ -2,9 +2,9 @@
 datasets/**
 runs/**
 old_runs/**
-*.pt
 slurm/results/**
-results/**
+results/**/*.PNG
+yolov8n.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

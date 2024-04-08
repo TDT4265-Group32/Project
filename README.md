@@ -35,3 +35,14 @@ $ python src/YOLOv8/predict.py --model_path <(dir)required> --pred_config <(.jso
 
 The .json files can be found in the "configs" folder and contains changes to the default settings. A file containing all the default parameters for "train" and "validation" can be found in "configs/default_train-val.yaml" and for "predict" in "configs/default_pred.yaml".
 
+## Tensorboard
+
+To check the tensorboard when using SSH into a remote server, it is required to forward the port of the remote server to the local to check,
+this can be done by doing the following in the **local machine**,
+
+```bash
+$ ssh -L 6006:localhost:6006 <remote address>
+```
+
+Here, it is assumed that the Tensorboard is located in "localhost:6006" on the remote server and it is forwarded to the local "6006" port.
+When connected, the tensorboard can be accessed locally in "localhost:6006".
