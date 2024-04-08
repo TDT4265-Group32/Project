@@ -1,0 +1,5 @@
+{
+    "data": "coco128.yaml",
+    "epochs": 50,
+    "imgsz": 640
+}

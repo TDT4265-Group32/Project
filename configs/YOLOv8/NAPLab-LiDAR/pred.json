@@ -1,0 +1,5 @@
+{
+    "source": "datasets/NAPLab-LiDAR/images",
+    "show": false,
+    "conf": 0.4
+}
