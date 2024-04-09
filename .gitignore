@@ -1,10 +1,11 @@
 # Custom
-datasets/NAPLab-LiDAR/*
+datasets/**
 runs/**
-old_runs/**
+prev_runs/**
 slurm/results/**
-results/**/*.PNG
+results/**
 yolov8n.pt
+!**/.gitkeep
 
 # vscode
 .vscode/

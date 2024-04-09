@@ -15,7 +15,7 @@ def main(args):
 
     objd.predict(predict_params, results_path=args.results_path)
     
-    if create_video:
+    if args.create_video:
         create_video(args.results_path, destination=path.join(args.results_path, 'pred_video.mp4'))
 
 if __name__ == "__main__":

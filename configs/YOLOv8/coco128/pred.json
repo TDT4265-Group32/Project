@@ -1,5 +1,5 @@
 {
-    "source": "datasets/NAPLab-LiDAR",
+    "source": "datasets/coco128/images/train2017",
     "show": false,
     "conf": 0.4
 }
