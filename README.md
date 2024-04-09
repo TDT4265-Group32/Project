@@ -26,12 +26,14 @@ Specific for our project, we use two different architectures:
 The scripts can be run using the CLI, where we currently have 3 different ones,
 
 ```bash
-$ python src/YOLOv8/train.py --dataset_path <(dir)required> --reshuffle_dataset <(bool)optional> --train_config <(.json)optional>
+$ python src/YOLOv8/train.py --dataset <(str/name)optional>
 
-$ python src/YOLOv8/val.py --model_path <(dir)required> --val_config <(.json)optional>
+$ python src/YOLOv8/val.py --model_path <(dir)required> --dataset <(str/name)optional>
 
-$ python src/YOLOv8/predict.py --model_path <(dir)required> --pred_config <(.json)optional> --results_path <(dir)optional> --create_video <(bool)optional>
+$ python src/YOLOv8/predict.py --model_path <(dir)required> --dataset <(str/name)optional> --create_video <(bool)optional>
 ```
+
+The default dataset is NAPLab-LiDAR and create_video is false.
 
 The .json files can be found in the "configs" folder and contains changes to the default settings. A file containing all the default parameters for "train" and "validation" can be found in "configs/default_train-val.yaml" and for "predict" in "configs/default_pred.yaml".
 

@@ -1,5 +1,6 @@
 {
     "data": "coco.yaml",
     "epochs": 100,
-    "imgsz": 640
+    "imgsz": 640,
+    "resume": true
 }
