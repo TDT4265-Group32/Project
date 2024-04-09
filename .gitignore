@@ -6,6 +6,9 @@ slurm/results/**
 results/**/*.PNG
 yolov8n.pt
 
+# vscode
+.vscode/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
