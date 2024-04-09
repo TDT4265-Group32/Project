@@ -1,5 +1,5 @@
 # Custom
-datasets/**
+datasets/NAPLab-LiDAR/*
 runs/**
 old_runs/**
 slurm/results/**
