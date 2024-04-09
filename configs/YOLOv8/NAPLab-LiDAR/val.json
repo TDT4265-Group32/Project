@@ -1,5 +1,5 @@
 {
     "data": "data/NAPLab-LiDAR.yaml",
-    "epochs": 1000,
+    "epochs": 100,
     "imgsz": 640
 }

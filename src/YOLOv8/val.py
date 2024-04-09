@@ -1,5 +1,6 @@
 import YOLOv8
 
+from os import path
 import argparse
 import json
 
@@ -8,15 +9,21 @@ def main(args):
 
     objd.load_model(model_path=args.model_path)
 
-    with open(args.val_config) as json_file:
+    json_path = path.join('configs', 'YOLOv8', args.dataset, 'val.json')
+    with open(json_path) as json_file:
         val_params = json.load(json_file)
 
     objd.validate(val_params=val_params)
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Validate a given model.')
-    parser.add_argument('--model_path', type=str, help='Path to the model (Ex. in "runs/detect/train*/weights/best.pt")')
-    parser.add_argument('--val_config', type=str, default='configs/YOLOv8/NAPLab-LiDAR/train.json', help='Validation configuration file (Recommended to use the same as training)')
+    parser = argparse.ArgumentParser(description='Validate a given model.', formatter_class=argparse.RawTextHelpFormatter)
+    parser.add_argument('--model_path', type=str,
+                        help='Path to the model \
+                            \n(Ex. in "runs/detect/train*/weights/best.pt")')
+    parser.add_argument('--dataset', type=str, default='NAPLab-LiDAR', 
+                        help='Validation configuration file \
+                            \n(Recommended to format "configs/YOLOv8/<dataset>/val.json" similar to train.json \
+                            \nthat was used for the chosen model in <model_path>)')
 
 
     args = parser.parse_args()

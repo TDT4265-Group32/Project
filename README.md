@@ -46,3 +46,9 @@ $ ssh -L 6006:localhost:6006 <remote address>
 
 Here, it is assumed that the Tensorboard is located in "localhost:6006" on the remote server and it is forwarded to the local "6006" port.
 When connected, the tensorboard can be accessed locally in "localhost:6006".
+
+
+## Train, Validation and Test set
+
+* Test set is chosen to be from frame 201 to frame 301 (the mentioned frames are included).
+* All other remaining images are in the "datasets/NAPLab-LiDAR/images" folder which is free to be partitioned into "train" and "val" folders through "src/YOLOv8/utils/partition_dataset.py"

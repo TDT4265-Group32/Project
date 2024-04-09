@@ -2,8 +2,9 @@ import os
 import random
 import shutil
 from tqdm import tqdm
+random.seed(0)
 
-def partition_dataset(dataset_dir, train_ratio=0.7, val_ratio=0.3, force_repartition=False):
+def partition_dataset(dataset_dir, train_ratio=0.8, val_ratio=0.2, force_repartition=False):
     print(f'Partitioning dataset in {dataset_dir} into train, val, and test subsets...\n')
     image_dir = os.path.join(dataset_dir, 'images')
     label_dir = os.path.join(dataset_dir, 'labels')
