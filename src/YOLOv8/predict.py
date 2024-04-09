@@ -10,7 +10,7 @@ def main(args):
 
     objd.load_model(model_path=args.model_path)
     
-    json_path = path.join('configs', 'YOLOv8', args.dataset, 'predict.json')
+    json_path = path.join('configs', 'YOLOv8', args.dataset, 'pred.json')
     with open(json_path) as json_file:
         predict_params = json.load(json_file)    
 
