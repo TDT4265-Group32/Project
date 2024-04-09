@@ -21,8 +21,8 @@ if __name__ == "__main__":
                         help='Path to the model \
                             \n(Ex. in "runs/detect/train*/weights/best.pt")')
     parser.add_argument('--dataset', type=str, default='NAPLab-LiDAR', 
-                        help='Validation configuration file \
-                            \n(Recommended to format "configs/YOLOv8/<dataset>/val.json" similar to train.json \
+                        help='Dataset for validation \
+                            \n(Recommended to format "configs/YOLOv8/<dataset>/val.json" similar the train.json \
                             \nthat was used for the chosen model in <model_path>)')
 
 
