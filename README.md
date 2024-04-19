@@ -33,7 +33,7 @@ $ python src/YOLOv8/val.py --model_path <(dir)required> --dataset <(str/name)opt
 $ python src/YOLOv8/predict.py --model_path <(dir)required> --dataset <(str/name)optional> --create_video <(bool)optional>
 ```
 
-The default dataset is NAPLab-LiDAR and create_video is false.
+The default dataset is NAPLab-LiDAR and create_video is false, the rest needs to be specified.
 
 The .json files can be found in the "configs" folder and contains changes to the default settings. A file containing all the default parameters for "train" and "validation" can be found in "configs/default_train-val.yaml" and for "predict" in "configs/default_pred.yaml".
 
@@ -52,5 +52,5 @@ When connected, the tensorboard can be accessed locally in "localhost:6006".
 
 ## Train, Validation and Test set
 
-* Test set is chosen to be from frame 201 to frame 301 (the mentioned frames are included).
+* Test set is chosen to be from frame 201 to frame 301 ("edge" frames are included), which represents motion from a seperate scene from other parts of the dataset (a good fit for a test set).
 * All other remaining images are in the "datasets/NAPLab-LiDAR/images" folder which is free to be partitioned into "train" and "val" folders through "src/YOLOv8/utils/partition_dataset.py"

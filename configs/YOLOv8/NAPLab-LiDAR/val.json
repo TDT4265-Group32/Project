@@ -1,5 +1,8 @@
 {
-    "data": "data/NAPLab-LiDAR.yaml",
-    "epochs": 100,
-    "imgsz": 640
+    "model_path": "models/NAPLab-LiDAR/epoch1000_imsz640_2.pt",
+    "params": {
+        "data": "data/NAPLab-LiDAR.yaml",
+        "epochs": 100,
+        "imgsz": 640
+    }
 }

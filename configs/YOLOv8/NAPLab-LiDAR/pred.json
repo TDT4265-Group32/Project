@@ -1,5 +1,12 @@
 {
-    "source": "datasets/NAPLab-LiDAR/images/test",
-    "show": false,
-    "conf": 0.4
+    "model_path": "runs/detect/train8/weights/best.pt",
+    "params": {
+        "source": "datasets/NAPLab-LiDAR/images/test",
+        "show": false,
+        "conf": 0.4
+    },
+    "video": {
+        "create_video": true,
+        "filename": "test-pred.mp4"
+    }
 }

@@ -1,5 +1,9 @@
 {
-    "data": "data/NAPLab-LiDAR.yaml",
-    "epochs": 100,
-    "imgsz": 640
+    "params": {
+        "data": "data/NAPLab-LiDAR.yaml",
+        "epochs": 100,
+        "imgsz": 640,
+        "batch-size": 16,
+        "data_augmentation": true
+    }
 }

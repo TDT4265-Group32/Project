@@ -6,7 +6,7 @@ slurm/results/**
 results/**
 yolov8n.pt
 !**/.gitkeep
-
+**/*.mp4
 # vscode
 .vscode/
 
