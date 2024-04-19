@@ -3,7 +3,7 @@
         "data": "data/NAPLab-LiDAR.yaml",
         "epochs": 100,
         "imgsz": 640,
-        "batch-size": 16,
-        "data_augmentation": true
+        "batch": 16,
+        "auto_augment": "randaugment"
     }
 }
