@@ -60,7 +60,18 @@ def partition_dataset(dataset, train_ratio=0.8, val_ratio=0.2, force_repartition
 
 def partition_video_dataset(dataset: str,
                             num_clips: int,
-                            num_val: int = 1):
+                            num_val: int = 1,
+                            seed: int = None):
+    """
+    Function to partition a video dataset into training and validation subsets.
+    
+    
+    Args:
+    dataset (str): Name of the dataset
+    num_clips (int): Number of clips in the dataset
+    num_val (int): Number of validation clips
+    seed (int): Random seed for reproducibility
+    """
     
     assert num_val < num_clips, 'Number of validation clips must be less than total number of clips'
     
@@ -83,6 +94,8 @@ def partition_video_dataset(dataset: str,
             video_labels.append(labels[start:end])
             start = end
 
+        if seed is not None:
+            random.seed(seed)
         random.shuffle(video_labels)
         
         train_labels = video_labels[num_val:]
@@ -195,7 +208,8 @@ def kfold_crossval_partition(dataset: str,
 
 if __name__ == "__main__":
     # Temporary test code
-    partition_video_dataset('NAPLab-LiDAR', 18, 1)
+    for i in range(10):
+        partition_video_dataset('NAPLab-LiDAR', 18, 1)
 
     
     

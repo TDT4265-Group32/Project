@@ -1,11 +1,11 @@
 {
-    "model_path": "logs/vid_seg_50eps_20times/weights/best.pt",
+    "model_path": "logs/vid_seg_10eps_10times/weights/best.pt",
     "params": {
         "source": "datasets/NAPLab-LiDAR/images/test",
         "show": false
     },
     "video": {
         "create_video": true,
-        "filename": "test-pred-vidseg.mp4"
+        "filename": "ciou-test.mp4"
     }
 }

@@ -1,5 +1,5 @@
 {
-    "model_path": "logs/epoch1000_imgsz640/train2/weights/best.pt",
+    "model_path": "logs/vid_seg_10eps_10times/weights/best.pt",
     "params": {
         "data": "data/NAPLab-LiDAR.yaml"
     }

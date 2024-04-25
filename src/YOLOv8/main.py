@@ -15,6 +15,7 @@ from ultralytics.utils.tal import bbox2dist
 from tqdm import tqdm
 
 class CustomBboxLoss(BboxLoss):
+    """Custom bounding box loss class."""
     def __init__(self, reg_max, use_dfl=False):
         """Use CIoU loss for the bounding box loss."""
         super().__init__(reg_max, use_dfl)
@@ -38,6 +39,7 @@ class CustomBboxLoss(BboxLoss):
         return loss_iou, loss_dfl
 
 class CustomYOLO(YOLO):
+    """Custom YOLOv8 model."""
     def __init__(self, cfg='models/pretrained/yolov8n.pt'):
         super().__init__(cfg)
         # Choose to get better performance by sacrificing speed
@@ -45,20 +47,27 @@ class CustomYOLO(YOLO):
 
     def load(self, weights):
         """Load the YOLOv8 model.
-        Default model path is the pretrained YOLOv8n model.
+
         Args:
-        model_path (str): Path to the model file
+        weights (str): Path to the weights file
         """
         super().load(weights)
         self.fuse()
     
     def train(self, train_params):
+        """Train the YOLOv8 model.
+        
+        Args:
+        train_params (dict): Dictionary containing training parameters
+        """
         result = super().train(**train_params)
         return result
 
     def validate(self, val_params):
-        """
-        For more, check out: https://docs.ultralytics.com/modes/val/
+        """Validate the YOLOv8 model.
+        
+        Args:
+        val_params (dict): Dictionary containing validation parameters
         """
         
         results = super().val(**val_params)
@@ -66,7 +75,12 @@ class CustomYOLO(YOLO):
         return results
 
     def predict(self, predict_params, results_path=None):
-        # Split the file path into root and extension
+        """Predict using the YOLOv8 model.
+        Also, save the results if the results_path is provided.
+
+        Args:
+        predict_params (dict): Dictionary containing prediction parameters
+        """
 
         results = super().predict(**predict_params, device=self.device)
         
@@ -83,14 +97,6 @@ class CustomYOLO(YOLO):
         return results
 
 def main(args):
-    """Main function for running the script.
-    This function is responsible for running YOLOv8 model in the desired mode for the specified dataset.
-    Configurations for each mode can be found in the respective JSON files in the "configs" directory.
-    
-    Args:
-    args (argparse.Namespace): Arguments passed to the script containing the mode and dataset name
-    
-    """
     assert args.mode in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
 
     yolo_model = CustomYOLO()
@@ -106,8 +112,11 @@ def main(args):
             # Currently, only NAPLab-LiDAR has the desired structure for the "partition_dataset" function
             if json_content['partition']['mode'] == 'video':
                 params['epochs'] = ceil(params['epochs'] / json_content['partition']['num_shuffles'])
-                for _ in range(json_content['partition']['num_shuffles']):
-                    partition_video_dataset(dataset, 18)
+                for i in range(json_content['partition']['num_shuffles']):
+                    print("\n" + "="*50)
+                    print("Running shuffle {0}...".format(i + 1).center(50))
+                    print("="*50 + "\n")
+                    partition_video_dataset(dataset, 18, seed=i)
                     yolo_model.train(params)
                 
             elif json_content['partition']['mode'] == 'images':

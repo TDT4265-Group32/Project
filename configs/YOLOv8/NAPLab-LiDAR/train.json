@@ -1,13 +1,13 @@
 {
     "params": {
         "data": "data/NAPLab-LiDAR.yaml",
-        "epochs": 100,
+        "epochs": 1000,
         "imgsz": 640,
         "batch": 16,
         "auto_augment": "randaugment"
     },
     "partition": {
         "mode": "video",
-        "num_shuffles": 10
+        "num_shuffles": 18
     }
 }
