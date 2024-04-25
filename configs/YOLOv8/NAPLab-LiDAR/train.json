@@ -5,5 +5,10 @@
         "imgsz": 640,
         "batch": 16,
         "auto_augment": "randaugment"
+    },
+    "partition": {
+        "video": true,
+        "epochs_per_seg": 10,
+        "num_shuffles": 20
     }
 }

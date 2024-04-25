@@ -3,17 +3,17 @@ import argparse
 import json
 import glob
 
-from utils.partition_dataset import partition_dataset
-from src.base_model import BaseModel
-from src.tools.png_to_video import create_video
+from utils.partition_dataset import partition_dataset, partition_video_dataset
+import torch
+from tools.png_to_video import create_video
 
 from ultralytics import YOLO
 from tqdm import tqdm
 
-class YOLOv8(BaseModel):
+class YOLOv8():
     
     def __init__(self):
-        super().__init__()
+        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
         
         self.load_model()
 
@@ -22,7 +22,13 @@ class YOLOv8(BaseModel):
         raise NotImplementedError('This function is not yet implemented.')
 
     def load_model(self, model_path='models/pretrained/yolov8n.pt'):
+        """Load the YOLOv8 model.
+        Default model path is the pretrained YOLOv8n model.
         
+        Args:
+        model_path (str): Path to the model file
+    
+        """
         model = YOLO(model_path)
         model.fuse()
         
@@ -95,12 +101,25 @@ def main(args):
     params = json_content['params']
 
     if args.mode == 'train':
-        if args.dataset == 'NAPLab-LiDAR':
+        dataset = args.dataset
+        if dataset == 'NAPLab-LiDAR':
             # Currently, only NAPLab-LiDAR has the desired structure for the "partition_dataset" function
-            partition_dataset(dataset_dir=os.path.join('datasets', args.dataset), force_repartition=False)
+            # partition_dataset(dataset_dir=os.path.join('datasets', args.dataset), force_repartition=False)
+            # partition_video_dataset(args.dataset, 18)
+            if json_content['partition'] == 'video':
+                params['epochs'] = json_content['video']['epochs_per_seg']
+                for _ in range(json_content['video']['num_shuffles']):
+                    partition_video_dataset(dataset, 18)
+                    yolo_model.train(params)
+                
+            elif json_content['partition'] == 'images':
+                partition_dataset(dataset, force_repartition=False)
+                yolo_model.train(params)
 
-        yolo_model.train(params)
-        yolo_model.model.export()
+        else:
+            yolo_model.train(params)
+        
+        yolo_model.export()
 
     elif args.mode == 'val':
         model_path = json_content['model_path']
