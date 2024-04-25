@@ -2,6 +2,7 @@ import os
 import argparse
 import json
 import glob
+import time
 from math import ceil
 
 from utils.partition_dataset import partition_dataset, partition_video_dataset
@@ -96,7 +97,7 @@ class CustomYOLO(YOLO):
 
         return results
 
-def main(args):
+def main(args, start_time):
     assert args.mode in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
 
     yolo_model = CustomYOLO()
@@ -144,7 +145,12 @@ def main(args):
         if json_content['video']['create_video']:
             create_video(results_path, dst_path=os.path.join(results_path, json_content['video']['filename']))
 
+    elapsed_time = time.time() - start_time
+    with open('elapsed_time.txt', 'w') as f:
+        f.write(str(elapsed_time))
+
 if __name__ == "__main__":
+    start_time = time.time()
     parser = argparse.ArgumentParser(description='Script for training model.', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--mode', type=str, 
                         help='Mode to run the script in \
@@ -156,4 +162,4 @@ if __name__ == "__main__":
                             \nconfigs/YOLOv8/<name_of_dataset>')
 
     args = parser.parse_args()
-    main(args)
+    main(args, start_time)
