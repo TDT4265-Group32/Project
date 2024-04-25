@@ -27,6 +27,6 @@ module load cuDNN/8.8.0.121-CUDA-12.0.0
 conda activate ~/conda_envs/tdt4265-group32/
 cp -r runs prev_runs
 rm -rf runs
-python src/YOLOv8/train.py --dataset_path datasets/NAPLab-LiDAR --train_config configs/YOLOv8/NAPLab-LiDAR/train.json
-python src/YOLOv8/val.py --model_path runs/detect/train/weights/best.pt --val_config configs/YOLOv8/NAPLab-LiDAR/train.json
-python src/YOLOv8/predict.py --model_path runs/detect/train/weights/best.pt --pred_config configs/YOLOv8/NAPLab-LiDAR/pred.json --create_video True
+python src/YOLOv8/main.py --mode train
+python src/YOLOv8/main.py --mode val
+python src/YOLOv8/main.py --mode pred

@@ -1,5 +1,8 @@
 {
-    "data": "coco.yaml",
-    "epochs": 100,
-    "imgsz": 640
+    "model_path": "",
+    "params": {
+        "data": "coco.yaml",
+        "epochs": 100,
+        "imgsz": 640
+    }
 }

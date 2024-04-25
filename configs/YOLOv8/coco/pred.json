@@ -1,5 +1,12 @@
 {
-    "source": "datasets/coco128/images/train2017",
-    "show": false,
-    "conf": 0.4
+    "model_path": "",
+    "params": {
+        "source": "datasets/coco128/images/train2017",
+        "show": false,
+        "conf": 0.4
+    },
+    "video": {
+        "create_video": false,
+        "filename": "coco.mp4"
+    }
 }
