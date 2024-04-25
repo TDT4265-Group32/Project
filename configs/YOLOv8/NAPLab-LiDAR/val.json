@@ -1,8 +1,6 @@
 {
-    "model_path": "models/NAPLab-LiDAR/epoch1000_imsz640_2.pt",
+    "model_path": "logs/epoch1000_imgsz640/train2/weights/best.pt",
     "params": {
-        "data": "data/NAPLab-LiDAR.yaml",
-        "epochs": 100,
-        "imgsz": 640
+        "data": "data/NAPLab-LiDAR.yaml"
     }
 }

@@ -2,73 +2,73 @@ import os
 import argparse
 import json
 import glob
+from math import ceil
 
 from utils.partition_dataset import partition_dataset, partition_video_dataset
 import torch
 from tools.png_to_video import create_video
 
 from ultralytics import YOLO
+from ultralytics.utils.loss import BboxLoss
+from ultralytics.utils.metrics import bbox_iou
+from ultralytics.utils.tal import bbox2dist
 from tqdm import tqdm
 
-class YOLOv8():
-    
-    def __init__(self):
-        self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
+class CustomBboxLoss(BboxLoss):
+    def __init__(self, reg_max, use_dfl=False):
+        """Use CIoU loss for the bounding box loss."""
+        super().__init__(reg_max, use_dfl)
+        self.reg_max = reg_max
+        self.use_dfl = use_dfl
+
+    def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
+        """Modified forward function for the bounding box loss."""
         
-        self.load_model()
+        weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
+        # Use CIoU loss
+        CIoU = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=True, CIoU=True)
+        loss_iou = 1 - CIoU
+        if self.use_dfl:
+            target_ltrb = bbox2dist(anchor_points, target_bboxes, self.reg_max)
+            loss_dfl = self._df_loss(pred_dist[fg_mask].view(-1, self.reg_max + 1), target_ltrb[fg_mask]) * weight
+            loss_dfl = loss_dfl.sum() / target_scores_sum
+        else:
+            loss_dfl = torch.tensor(0.0).to(pred_dist.device)
 
-    def save_model(self, path):
+        return loss_iou, loss_dfl
 
-        raise NotImplementedError('This function is not yet implemented.')
+class CustomYOLO(YOLO):
+    def __init__(self, cfg='models/pretrained/yolov8n.pt'):
+        super().__init__(cfg)
+        # Choose to get better performance by sacrificing speed
+        self.loss = CustomBboxLoss(reg_max=4, use_dfl=True)
 
-    def load_model(self, model_path='models/pretrained/yolov8n.pt'):
+    def load(self, weights):
         """Load the YOLOv8 model.
         Default model path is the pretrained YOLOv8n model.
-        
         Args:
         model_path (str): Path to the model file
-    
         """
-        model = YOLO(model_path)
-        model.fuse()
-        
-        self.model = model
-        
-        return model
+        super().load(weights)
+        self.fuse()
     
     def train(self, train_params):
-        """
-        For more, check out: https://docs.ultralytics.com/modes/train/
-        """
-        result = self.model.train(**train_params, device=self.device)
-        
+        result = super().train(**train_params)
         return result
-
-    def run_inference(self, show=True, conf=0.4):
-        """
-        For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
-        """
-        self.model(source=0, show=show, conf=conf)
-
 
     def validate(self, val_params):
         """
         For more, check out: https://docs.ultralytics.com/modes/val/
         """
-        results = self.model.val(**val_params, device=self.device)
-        print(f'Precision: {results.p}')
-        print(f'Recall: {results.r}')
-        print(f'mAP: {results.map}')
+        
+        results = super().val(**val_params)
         
         return results
 
     def predict(self, predict_params, results_path=None):
-        """
-        For more, check out: https://docs.ultralytics.com/modes/predict/#key-features-of-predict-mode
-        """
         # Split the file path into root and extension
 
-        results = self.model.predict(**predict_params, device=self.device)
+        results = super().predict(**predict_params, device=self.device)
         
         if results_path is not None:
         
@@ -93,7 +93,7 @@ def main(args):
     """
     assert args.mode in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
 
-    yolo_model = YOLOv8()
+    yolo_model = CustomYOLO()
     json_path = os.path.join('configs', 'YOLOv8', args.dataset, args.mode + '.json')
     with open(json_path) as json_file:
         json_content = json.load(json_file)
@@ -104,26 +104,26 @@ def main(args):
         dataset = args.dataset
         if dataset == 'NAPLab-LiDAR':
             # Currently, only NAPLab-LiDAR has the desired structure for the "partition_dataset" function
-            # partition_dataset(dataset_dir=os.path.join('datasets', args.dataset), force_repartition=False)
-            # partition_video_dataset(args.dataset, 18)
-            if json_content['partition'] == 'video':
-                params['epochs'] = json_content['video']['epochs_per_seg']
-                for _ in range(json_content['video']['num_shuffles']):
+            if json_content['partition']['mode'] == 'video':
+                params['epochs'] = ceil(params['epochs'] / json_content['partition']['num_shuffles'])
+                for _ in range(json_content['partition']['num_shuffles']):
                     partition_video_dataset(dataset, 18)
                     yolo_model.train(params)
                 
-            elif json_content['partition'] == 'images':
+            elif json_content['partition']['mode'] == 'images':
                 partition_dataset(dataset, force_repartition=False)
                 yolo_model.train(params)
+            else:
+                raise ValueError('Invalid partition mode. Please choose from: video, images')
 
         else:
             yolo_model.train(params)
-        
+
         yolo_model.export()
 
     elif args.mode == 'val':
         model_path = json_content['model_path']
-        yolo_model.load_model(model_path=model_path)
+        yolo_model.load(model_path)
         yolo_model.validate(val_params=params)
 
     elif args.mode == 'pred':

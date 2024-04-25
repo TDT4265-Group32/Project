@@ -102,13 +102,8 @@ def partition_video_dataset(dataset: str,
         
         print(f'Copying {subset} images into {img_subset_dir}...')
         if os.path.exists(img_subset_dir):
-            # Prune the directory
-            for filename in os.listdir(img_subset_dir):
-                file_path = os.path.join(img_subset_dir, filename)
-                if file_path not in images:
-                    os.remove(file_path)
-        else:
-            os.makedirs(img_subset_dir, exist_ok=True)
+            shutil.rmtree(img_subset_dir)
+        os.makedirs(img_subset_dir, exist_ok=True)
         for image in tqdm(images, desc=f'Copying {subset} images'):
             shutil.copy(image, img_subset_dir)
 

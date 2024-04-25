@@ -7,8 +7,7 @@
         "auto_augment": "randaugment"
     },
     "partition": {
-        "video": true,
-        "epochs_per_seg": 10,
-        "num_shuffles": 20
+        "mode": "video",
+        "num_shuffles": 10
     }
 }
