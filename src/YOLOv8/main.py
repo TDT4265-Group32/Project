@@ -134,14 +134,13 @@ def main(args):
 
     assert MODE in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
 
-    # Use custom YOLOv8 model with overloaded functions, implementations can be seen above
-    model = CustomYOLO()
-
     # Load the configuration file
     JSON_PATH = os.path.join('configs', 'YOLOv8', DATASET, MODE + '.json')
     with open(JSON_PATH) as json_config_file:
         CONFIG_JSON = json.load(json_config_file)
-    
+
+    # Use custom YOLOv8 model with overloaded functions, implementations can be seen above
+    model = CustomYOLO(cfg=CONFIG_JSON['pretrained_model'])
     # Load parameters to be passed onto train, validate, or predict functions
     PARAMS = CONFIG_JSON['params']
 
