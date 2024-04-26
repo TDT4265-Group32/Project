@@ -1,5 +1,5 @@
 {
-    "model_path": "logs/vid_seg_1000eps/weights/best.pt",
+    "model_path": "runs/detect/train3/weights/best.pt",
     "params": {
         "source": "datasets/NAPLab-LiDAR/images/test",
         "show": false

@@ -140,7 +140,7 @@ def main(args):
         CONFIG_JSON = json.load(json_config_file)
 
     # Use custom YOLOv8 model with overloaded functions, implementations can be seen above
-    model = CustomYOLO(cfg=CONFIG_JSON['pretrained_model'])
+    model = CustomYOLO(cfg=CONFIG_JSON['model_path'])
     # Load parameters to be passed onto train, validate, or predict functions
     PARAMS = CONFIG_JSON['params']
 

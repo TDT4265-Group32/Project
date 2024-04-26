@@ -1,7 +1,6 @@
 {
-    "model_path": "runs/detect/train21/weights/best.pt",
+    "model_path": "runs/detect/train3/weights/best.pt",
     "params": {
-        "data": "datasets/NAPLab-LiDAR/data.yaml",
-        "imgsz": 1024
+        "max_det": 300
     }
 }

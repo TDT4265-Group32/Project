@@ -1,5 +1,5 @@
 {
-    "pretrained_model": "yolov8m.pt",
+    "model_path": "yolov8m.pt",
     "loss_function": {
         "use_dfl": true,
         "use_giou": true,
@@ -8,10 +8,11 @@
     },
     "params": {
         "data": "datasets/NAPLab-LiDAR/data.yaml",
-        "epochs": 100,
+        "epochs": 1000,
         "imgsz": 1024,
         "hsv_h": 0.0,
-        "hsv_s": 0.0
+        "hsv_s": 0.0,
+        "val": true
     },
     "partition": {
         "mode": "images",
