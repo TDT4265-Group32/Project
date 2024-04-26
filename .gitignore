@@ -1,11 +1,13 @@
 # Custom
-datasets/**
 runs/**
 prev_runs/**
 slurm/results/**
 results/**
-yolov8n.pt
+yolo*.pt
 *.txt
+datasets/**/images
+datasets/**/labels
+
 !**/.gitkeep
 # vscode
 .vscode/
