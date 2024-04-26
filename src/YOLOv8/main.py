@@ -8,6 +8,7 @@ from math import ceil
 from utils.partition_dataset import partition_dataset, partition_video_dataset
 import torch
 from tools.png_to_video import create_video
+import pynvml
 
 from ultralytics import YOLO
 from ultralytics.utils.loss import BboxLoss
@@ -22,14 +23,20 @@ class CustomBboxLoss(BboxLoss):
         super().__init__(reg_max, use_dfl)
         self.reg_max = reg_max
         self.use_dfl = use_dfl
+        self.use_iou_method = {"giou": False,
+                                "diou": False,
+                                "ciou": False}
 
     def forward(self, pred_dist, pred_bboxes, anchor_points, target_bboxes, target_scores, target_scores_sum, fg_mask):
         """Modified forward function for the bounding box loss."""
         
         weight = target_scores.sum(-1)[fg_mask].unsqueeze(-1)
-        # Use CIoU loss
-        CIoU = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=True, CIoU=True)
-        loss_iou = 1 - CIoU
+
+        iou = bbox_iou(pred_bboxes[fg_mask], target_bboxes[fg_mask], xywh=True,
+                        CIoU=self.use_iou_method['ciou'],
+                        DIoU=self.use_iou_method['diou'],
+                        GIoU=self.use_iou_method['giou'])
+        loss_iou = 1 - iou
         if self.use_dfl:
             target_ltrb = bbox2dist(anchor_points, target_bboxes, self.reg_max)
             loss_dfl = self._df_loss(pred_dist[fg_mask].view(-1, self.reg_max + 1), target_ltrb[fg_mask]) * weight
@@ -75,7 +82,7 @@ class CustomYOLO(YOLO):
         
         return results
 
-    def predict(self, predict_params, results_path=None):
+    def predict(self, predict_params, dataset: str = None):
         """Predict using the YOLOv8 model.
         Also, save the results if the results_path is provided.
 
@@ -85,10 +92,15 @@ class CustomYOLO(YOLO):
 
         results = super().predict(**predict_params, device=self.device)
         
-        if results_path is not None:
-        
+        if dataset is not None:
+            results_path = os.path.join('results', dataset)
             if not os.path.exists(results_path):
                 os.makedirs(results_path)
+            else:
+                # Clear the results folder
+                for file in os.listdir(results_path):
+                    if file.endswith('.PNG'):
+                        os.remove(os.path.join(results_path, file))
 
             for idx, result in tqdm(enumerate(results), total=len(results), desc=f'Saving result frames'):
                 img_path = sorted(glob.glob(os.path.join(predict_params['source'], '*.PNG')))[idx]
@@ -97,60 +109,119 @@ class CustomYOLO(YOLO):
 
         return results
 
-def main(args, start_time):
-    assert args.mode in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
+    def set_dfl(self, active: bool):
+        """Set the DFL flag in the loss function.
 
-    yolo_model = CustomYOLO()
-    json_path = os.path.join('configs', 'YOLOv8', args.dataset, args.mode + '.json')
-    with open(json_path) as json_file:
-        json_content = json.load(json_file)
+        Args:
+        active (bool): Flag to activate DFL
+        """
+        self.loss.use_dfl = active
+
+    def set_iou_method(self, method: str, active: bool):
+        """Set the IoU method in the loss function.
+
+        Args:
+        method (str): Name of the IoU method
+        active (bool): Flag to activate the IoU method
+        """
+        assert method in ['giou', 'diou', 'ciou'], 'Invalid IoU method. Please choose from: giou, diou, ciou'
+
+        self.loss.use_iou_method[method] = active
+
+def main(args):
+    MODE = args.mode
+    DATASET = args.dataset
+
+    assert MODE in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
+
+    # Use custom YOLOv8 model with overloaded functions, implementations can be seen above
+    model = CustomYOLO()
+
+    # Load the configuration file
+    JSON_PATH = os.path.join('configs', 'YOLOv8', DATASET, MODE + '.json')
+    with open(JSON_PATH) as json_config_file:
+        CONFIG_JSON = json.load(json_config_file)
     
-    params = json_content['params']
+    # Load parameters to be passed onto train, validate, or predict functions
+    PARAMS = CONFIG_JSON['params']
 
-    if args.mode == 'train':
-        dataset = args.dataset
-        if dataset == 'NAPLab-LiDAR':
-            # Currently, only NAPLab-LiDAR has the desired structure for the "partition_dataset" function
-            if json_content['partition']['mode'] == 'video':
-                params['epochs'] = ceil(params['epochs'] / json_content['partition']['num_shuffles'])
-                for i in range(json_content['partition']['num_shuffles']):
+    if MODE == 'train':
+        # Set the loss function parameters
+        model.set_dfl(CONFIG_JSON['loss_function']['use_dfl'])
+        model.set_iou_method('giou', CONFIG_JSON['loss_function']['use_giou'])
+        model.set_iou_method('diou', CONFIG_JSON['loss_function']['use_diou'])
+        model.set_iou_method('ciou', CONFIG_JSON['loss_function']['use_ciou'])
+
+        # Start the timer and initialize the power consumption
+        pynvml.nvmlInit()
+        start_time = time.time()
+        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
+        init_gpu_power = pynvml.nvmlDeviceGetPowerUsage(handle)
+
+        # Partition functions currently only work with NAPLab-LiDAR
+        if DATASET == 'NAPLab-LiDAR':
+            
+            # Partition the dataset based on the mode
+            if CONFIG_JSON['partition']['mode'] == 'video':
+
+                # Evenly distribute the epochs across the number of shuffles
+                PARAMS['epochs'] = ceil(PARAMS['epochs'] / CONFIG_JSON['partition']['num_shuffles'])
+                for i in range(CONFIG_JSON['partition']['num_shuffles']):
                     print("\n" + "="*50)
                     print("Running shuffle {0}...".format(i + 1).center(50))
                     print("="*50 + "\n")
-                    partition_video_dataset(dataset, 18, seed=i)
-                    yolo_model.train(params)
+                    partition_video_dataset(DATASET, 18, seed=i)
+                    model.train(PARAMS)
                 
-            elif json_content['partition']['mode'] == 'images':
-                partition_dataset(dataset, force_repartition=False)
-                yolo_model.train(params)
+            elif CONFIG_JSON['partition']['mode'] == 'images':
+                partition_dataset(DATASET, force_repartition=False)
+                model.train(PARAMS)
             else:
-                raise ValueError('Invalid partition mode. Please choose from: video, images')
+                raise ValueError('NAPLab-LiDAR dataset needs to be partitioned by either "video" or "images" mode.')
 
+        # For other datasets, just train the model
         else:
-            yolo_model.train(params)
+            model.train(PARAMS)
 
-        yolo_model.export()
-
-    elif args.mode == 'val':
-        model_path = json_content['model_path']
-        yolo_model.load(model_path)
-        yolo_model.validate(val_params=params)
-
-    elif args.mode == 'pred':
-        model_path = json_content['model_path']
-
-        results_path = os.path.join('results', args.dataset)
-        yolo_model.predict(params, results_path=results_path)
+        # Stop the timer and finalize the power consumption
+        final_gpu_power = pynvml.nvmlDeviceGetPowerUsage(handle)
+        elapsed_time = time.time() - start_time
+        pynvml.nvmlShutdown()
         
-        if json_content['video']['create_video']:
-            create_video(results_path, dst_path=os.path.join(results_path, json_content['video']['filename']))
+        # Save the power consumption
+        gpu_power_usage = final_gpu_power - init_gpu_power
+        # Save the elapsed time
+        hours, remainder = divmod(elapsed_time, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        # Write the results to a file
+        with open('carbon_footprint.txt', 'w') as f:
+            f.write(f"Time elapsed: {int(hours)}h {int(minutes)}m {seconds}s")
+            f.write(f"GPU power usage: {gpu_power_usage / 1000} W")
 
-    elapsed_time = time.time() - start_time
-    with open('elapsed_time.txt', 'w') as f:
-        f.write(str(elapsed_time))
+    elif MODE == 'val':
+        model_path = CONFIG_JSON['model_path']
+        model.load(model_path)
+        model.validate(val_params=PARAMS)
+
+    elif MODE == 'pred':
+        model_path = CONFIG_JSON['model_path']
+
+        model.predict(PARAMS, DATASET)
+
+        # Only sensible to create video from sequence of PNGs for NAPLab-LiDAR dataset
+        if CONFIG_JSON['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
+
+            # Create path if it doesn't exist
+            if not os.path.exists(CONFIG_JSON['video']['path']):
+                os.makedirs(CONFIG_JSON['video']['path'])
+
+            # Create video from sequence of PNGs
+            create_video(os.path.join('results', DATASET),
+                         dst_path=os.path.join(CONFIG_JSON['video']['path'],
+                                               CONFIG_JSON['video']['filename']))
 
 if __name__ == "__main__":
-    start_time = time.time()
+    # Parse the arguments
     parser = argparse.ArgumentParser(description='Script for training model.', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--mode', type=str, 
                         help='Mode to run the script in \
@@ -160,6 +231,5 @@ if __name__ == "__main__":
                             \nDefault: NAPLab-LiDAR \
                             \nCheck datasets with available configs in "configs" directory: \
                             \nconfigs/YOLOv8/<name_of_dataset>')
-
     args = parser.parse_args()
-    main(args, start_time)
+    main(args)

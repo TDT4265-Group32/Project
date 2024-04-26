@@ -5,8 +5,8 @@ prev_runs/**
 slurm/results/**
 results/**
 yolov8n.pt
+*.txt
 !**/.gitkeep
-**/*.mp4
 # vscode
 .vscode/
 

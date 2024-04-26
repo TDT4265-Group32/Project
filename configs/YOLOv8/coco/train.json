@@ -1,4 +1,10 @@
 {
+    "loss_function": {
+        "use_dfl": true,
+        "use_giou": true,
+        "use_diou": true,
+        "use_ciou": true
+    },
     "params": {
         "data": "coco.yaml",
         "epochs": 100,

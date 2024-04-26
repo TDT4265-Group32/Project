@@ -20,7 +20,6 @@ def create_video(src_path, dst_path='unnamed_video.mp4'):
     Exception: If an error is encountered while extracting frame dimensions
     Exception: If an error is encountered while creating video
     """
-    img_paths = glob.glob(os.path.join(src_path, '*.PNG'))
     images = [img for img in os.listdir(src_path) if img.endswith(".PNG")]
     
     assert len(images) > 0, f'No PNGs found in {src_path}'

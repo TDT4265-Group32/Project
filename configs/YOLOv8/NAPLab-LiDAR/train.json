@@ -1,13 +1,19 @@
 {
+    "loss_function": {
+        "use_dfl": true,
+        "use_giou": true,
+        "use_diou": true,
+        "use_ciou": true
+    },
     "params": {
-        "data": "data/NAPLab-LiDAR.yaml",
-        "epochs": 1000,
-        "imgsz": 640,
+        "data": "datasets/NAPLab-LiDAR/data.yaml",
+        "epochs": 100,
+        "imgsz": 1024,
         "batch": 16,
         "auto_augment": "randaugment"
     },
     "partition": {
-        "mode": "video",
+        "mode": "images",
         "num_shuffles": 18
     }
 }
