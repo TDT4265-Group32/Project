@@ -12,6 +12,7 @@
         "imgsz": 1024,
         "hsv_h": 0.0,
         "hsv_s": 0.0,
+        "time": 5.0,
         "val": true
     },
     "partition": {
