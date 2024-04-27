@@ -194,7 +194,7 @@ def main(args):
         minutes, seconds = divmod(remainder, 60)
         # Write the results to a file
         with open('carbon_footprint.txt', 'w') as f:
-            f.write(f"Time elapsed: {int(hours)}h {int(minutes)}m {seconds}s")
+            f.write(f"Time elapsed: {int(hours)}h {int(minutes)}m {seconds}s\n")
             f.write(f"GPU power usage: {gpu_power_usage / 1000} W")
 
     elif MODE == 'val':
