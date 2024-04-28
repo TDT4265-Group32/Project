@@ -9,7 +9,7 @@ import pandas as pd
 import collections
 from sklearn.model_selection import KFold
 
-def partition_dataset(dataset, train_ratio=0.8, val_ratio=0.2, force_repartition=False):
+def partition_dataset(dataset, train_ratio=0.8, val_ratio=0.2):
     print(f'Partitioning dataset in {dataset} into train, val, and test subsets...\n')
     dataset_path = f'datasets/{dataset}'
     image_dir = os.path.join(dataset_path, 'images')
@@ -23,7 +23,6 @@ def partition_dataset(dataset, train_ratio=0.8, val_ratio=0.2, force_repartition
     assert len(all_images) == len(all_labels), 'Number of images and labels do not match'
 
     random.shuffle(all_images)
-    random.shuffle(all_labels)
 
     train_size = int(len(all_images) * train_ratio)
     val_size = int(len(all_images) * val_ratio)
@@ -37,9 +36,6 @@ def partition_dataset(dataset, train_ratio=0.8, val_ratio=0.2, force_repartition
     def copy_files(images, labels, subset):
         img_subset_dir = os.path.join(image_dir, subset)
         lbl_subset_dir = os.path.join(label_dir, subset)
-        if not force_repartition and os.path.exists(img_subset_dir) and os.path.exists(lbl_subset_dir):
-            print(f'{img_subset_dir} and {lbl_subset_dir} already exists, skipping...')
-            return
 
         print(f'Copying {subset} images into {img_subset_dir}...')
         if os.path.exists(img_subset_dir):

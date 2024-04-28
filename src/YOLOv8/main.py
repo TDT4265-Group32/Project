@@ -173,7 +173,7 @@ def main(args):
                     model.train(PARAMS)
                 
             elif CONFIG_JSON['partition']['mode'] == 'images':
-                partition_dataset(DATASET, force_repartition=False)
+                partition_dataset(DATASET)
                 model.train(PARAMS)
             else:
                 raise ValueError('NAPLab-LiDAR dataset needs to be partitioned by either "video" or "images" mode.')
