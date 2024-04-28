@@ -1,5 +1,5 @@
 {
-    "model_path": "runs/detect/train3/weights/best.pt",
+    "model_path": "runs/detect/train<best-train-index>/weights/best.pt",
     "params": {
         "source": "datasets/NAPLab-LiDAR/images/test",
         "show": false
@@ -7,6 +7,6 @@
     "video": {
         "create_video": true,
         "path": "results/NAPLab-LiDAR/videos",
-        "filename": "shuffled-ciou-test.mp4"
+        "filename": "<name-of-video>.mp4"
     }
 }
