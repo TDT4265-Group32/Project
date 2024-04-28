@@ -49,7 +49,7 @@ class CustomBboxLoss(BboxLoss):
 
 class CustomYOLO(YOLO):
     """Custom YOLOv8 model."""
-    def __init__(self, cfg='models/pretrained/yolov8n.pt'):
+    def __init__(self, cfg='models/pretrained/yolov8m.pt'):
         super().__init__(cfg)
         # Choose to get better performance by sacrificing speed
         self.loss = CustomBboxLoss(reg_max=4, use_dfl=True)
