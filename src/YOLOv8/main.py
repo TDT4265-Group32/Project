@@ -8,7 +8,6 @@ from math import ceil
 from utils.partition_dataset import partition_dataset, partition_video_dataset
 import torch
 from tools.png_to_video import create_video
-import pynvml
 
 from ultralytics import YOLO
 from ultralytics.utils.loss import BboxLoss
@@ -152,10 +151,7 @@ def main(args):
         model.set_iou_method('ciou', CONFIG_JSON['loss_function']['use_ciou'])
 
         # Start the timer and initialize the power consumption
-        pynvml.nvmlInit()
         start_time = time.time()
-        handle = pynvml.nvmlDeviceGetHandleByIndex(0)
-        init_gpu_power = pynvml.nvmlDeviceGetPowerUsage(handle)
 
         # Partition functions currently only work with NAPLab-LiDAR
         if DATASET == 'NAPLab-LiDAR':
@@ -183,19 +179,15 @@ def main(args):
             model.train(PARAMS)
 
         # Stop the timer and finalize the power consumption
-        final_gpu_power = pynvml.nvmlDeviceGetPowerUsage(handle)
         elapsed_time = time.time() - start_time
-        pynvml.nvmlShutdown()
         
         # Save the power consumption
-        gpu_power_usage = final_gpu_power - init_gpu_power
         # Save the elapsed time
         hours, remainder = divmod(elapsed_time, 3600)
         minutes, seconds = divmod(remainder, 60)
         # Write the results to a file
         with open('carbon_footprint.txt', 'w') as f:
             f.write(f"Time elapsed: {int(hours)}h {int(minutes)}m {seconds}s\n")
-            f.write(f"GPU power usage: {gpu_power_usage / 1000} W")
 
     elif MODE == 'val':
         model_path = CONFIG_JSON['model_path']
