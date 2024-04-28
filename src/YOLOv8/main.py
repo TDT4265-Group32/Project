@@ -15,6 +15,7 @@ from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.tal import bbox2dist
 from tqdm import tqdm
 from codecarbon import EmissionsTracker
+import random
 
 class CustomBboxLoss(BboxLoss):
     """Custom bounding box loss class."""
@@ -216,6 +217,8 @@ def main(args):
                                                CONFIG_JSON['video']['filename']))
 
 if __name__ == "__main__":
+    # Make results "deterministic"
+    random.seed(0)
     # Parse the arguments
     parser = argparse.ArgumentParser(description='Script for training model.', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--mode', type=str, 
