@@ -22,4 +22,4 @@ dependencies:
     - supervision
     - imageio[ffmpeg]
     - scikit-learn
-    - pynvml
+    - codecarbon
