@@ -14,6 +14,7 @@ from ultralytics.utils.loss import BboxLoss
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.tal import bbox2dist
 from tqdm import tqdm
+from codecarbon import EmissionsTracker
 
 class CustomBboxLoss(BboxLoss):
     """Custom bounding box loss class."""
@@ -152,6 +153,8 @@ def main(args):
 
         # Start the timer and initialize the power consumption
         start_time = time.time()
+        tracker = EmissionsTracker()
+        tracker.start()
 
         # Partition functions currently only work with NAPLab-LiDAR
         if DATASET == 'NAPLab-LiDAR':
@@ -179,6 +182,7 @@ def main(args):
             model.train(PARAMS)
 
         # Stop the timer and finalize the power consumption
+        tracker.stop()
         elapsed_time = time.time() - start_time
         
         # Save the power consumption
@@ -186,7 +190,7 @@ def main(args):
         hours, remainder = divmod(elapsed_time, 3600)
         minutes, seconds = divmod(remainder, 60)
         # Write the results to a file
-        with open('carbon_footprint.txt', 'w') as f:
+        with open('time_elapsed.txt', 'w') as f:
             f.write(f"Time elapsed: {int(hours)}h {int(minutes)}m {seconds}s\n")
 
     elif MODE == 'val':
