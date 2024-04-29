@@ -13,6 +13,7 @@ export/**
 import/**
 **/*.zip
 datasets/**/LICENSE
+**/*.cache
 
 !**/.gitkeep
 # vscode

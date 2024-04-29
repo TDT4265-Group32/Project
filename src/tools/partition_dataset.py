@@ -39,7 +39,7 @@ def partition_dataset(train_ratio: float = 0.8):
     """
     DATASET = 'NAPLab-LiDAR'
     
-    print(f'Partitioning dataset in {DATASET} into train, val, and test subsets...\n')
+    print(f'Partitioning dataset in {DATASET} into train and val subsets...\n')
     try:
         dataset_path = pathlib.Path(f'datasets/{DATASET}')
     except FileNotFoundError:

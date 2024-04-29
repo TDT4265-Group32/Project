@@ -1,8 +1,8 @@
-model_path: runs/detect/train/weights/best.pt
-params:
+model_path: runs/detect/train/weights/best.pt # Path to the trained model
+params: # Parameters for YOLO prediction
   source: datasets/NAPLab-LiDAR/images/test
   show: false
-video:
+video: # Parameters for creating video
   create_video: true
   path: results/NAPLab-LiDAR/videos
   filename: test

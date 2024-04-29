@@ -10,6 +10,7 @@ import FasterRCNN
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
 from tools.partition_dataset import partition_dataset
 from tools.png_to_video import create_video
+from tools.load_dataset import copy_datasets
 
 def main(args):
     ARCHITECTURE = args.type
@@ -17,6 +18,7 @@ def main(args):
     MODEL = args.model_path
     # Only dataset used in the project
     DATASET = 'NAPLab-LiDAR'
+    copy_datasets()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'bench'], 'Invalid mode. Please choose from: train, validate, predict'

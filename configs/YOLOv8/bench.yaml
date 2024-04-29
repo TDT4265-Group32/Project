@@ -1,2 +1,2 @@
 params:
-    data: coco128.yaml
+    data: coco128.yaml # Which dataset to perform benchmark on
