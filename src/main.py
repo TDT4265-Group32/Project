@@ -8,7 +8,7 @@ from codecarbon import EmissionsTracker
 
 import FasterRCNN
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
-from tools.partition_dataset import partition_dataset, partition_video_dataset
+from tools.partition_dataset import partition_dataset
 from tools.png_to_video import create_video
 
 def main(args):
@@ -21,9 +21,9 @@ def main(args):
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'bench'], 'Invalid mode. Please choose from: train, validate, predict'
 
-    # Load the configuration file
     match ARCHITECTURE:
         case 'YOLOv8':
+            # Load the configuration file
             YAML_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
             with open(YAML_PATH) as yaml_config_file:
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
@@ -33,38 +33,35 @@ def main(args):
             # Load parameters to be passed onto train, validate, or predict functions
             PARAMS = CONFIG_YAML['params']
 
-            if MODE == 'train':
-                # Set the loss function parameters
-                model.set_dfl(CONFIG_YAML['loss_function']['use_dfl'])
-                model.set_iou_method('giou', CONFIG_YAML['loss_function']['use_giou'])
-                model.set_iou_method('diou', CONFIG_YAML['loss_function']['use_diou'])
-                model.set_iou_method('ciou', CONFIG_YAML['loss_function']['use_ciou'])
+            match MODE:
+                case 'train':
+                    # Set the loss function parameters
+                    model.set_dfl(CONFIG_YAML['loss_function']['use_dfl'])
+                    model.set_iou_method('giou', CONFIG_YAML['loss_function']['use_giou'])
+                    model.set_iou_method('diou', CONFIG_YAML['loss_function']['use_diou'])
+                    model.set_iou_method('ciou', CONFIG_YAML['loss_function']['use_ciou'])
 
-                # Initialize the emissions tracker
-                tracker = EmissionsTracker()
-                tracker.start()
+                    # Initialize the emissions tracker
+                    tracker = EmissionsTracker()
+                    tracker.start()
 
-                # Partition the dataset into seperate training and validation folders
-                partition_dataset()
-                model.train(PARAMS)
+                    # Partition the dataset into seperate training and validation folders
+                    partition_dataset()
+                    model.train(PARAMS)
 
-                # Stop the timer and finalize the power consumption
-                tracker.stop()
+                    # Stop the timer and finalize the power consumption
+                    tracker.stop()
+                case 'val':
 
-            elif MODE == 'val':
+                    model.validate(val_params=PARAMS)
 
-                model.validate(val_params=PARAMS)
+                case 'pred':
 
-            elif MODE == 'pred':
-
-                model.predict(PARAMS)
-
-                # Only sensible to create video from sequence of PNGs for NAPLab-LiDAR dataset
-                if CONFIG_YAML['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
-
-                    # Create path if it doesn't exist
-                    if not os.path.exists(CONFIG_YAML['video']['path']):
-                        os.makedirs(CONFIG_YAML['video']['path'])
+                    model.predict(PARAMS)
+                    if CONFIG_YAML['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
+                        # Create path if it doesn't exist
+                        if not os.path.exists(CONFIG_YAML['video']['path']):
+                            os.makedirs(CONFIG_YAML['video']['path'])
 
                     # Create video from sequence of PNGs
                     create_video(os.path.join('results', DATASET),
@@ -72,11 +69,10 @@ def main(args):
                                                     CONFIG_YAML['video']['filename']),
                                 extension=CONFIG_YAML['video']['extension'],
                                 fps=CONFIG_YAML['video']['fps'])
-
-            elif MODE == 'bench':
-                # Benchmark the model
-                # NOTE: This attempts to export model to all available formats
-                model.benchmark(PARAMS)
+                case 'bench':
+                    # Benchmark the model
+                    # NOTE: This attempts to export model to all available formats
+                    model.benchmark(PARAMS)
 
         case 'FasterRCNN':
             raise NotImplementedError('Insert FasterRCNN code here')
