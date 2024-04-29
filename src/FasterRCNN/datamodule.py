@@ -19,15 +19,28 @@ class NAPLabLiDAR(Dataset):
         
         # Load image
         img = Image.open(img_path).convert("L")
+
+        # TODO: Load annotations
         
+        # # Load annotations from text file
+        # with open(self.annotations, 'r') as file:
+        #     # Parse annotations from the text file
+        #     # This depends on the format of your annotation file
+        #     # For example, if your annotations are in COCO format, you need to parse it accordingly
+        #     annotation = parse_annotations(file)
+
         # Apply transformations
         if self.transform:
             img = self.transform(img)
         
         # Prepare targets (annotations)
-        # You need to define how to process your annotations based on your dataset's format
+        # You need to ensure that targets are returned for training mode
+        if self.annotations is not None:
+            target = annotation  # Assuming your annotation is in the correct format
+        else:
+            target = None  # If targets are not available, return None
         
-        return img, annotation
+        return img, target
 
 class CustomDataModule(pl.LightningDataModule):
     def __init__(self, train_dataset, val_dataset, batch_size=32, num_workers=4):
