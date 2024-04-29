@@ -7,6 +7,8 @@
     "video": {
         "create_video": true,
         "path": "results/NAPLab-LiDAR/videos",
-        "filename": "<name-of-video>.mp4"
+        "filename": "test",
+        "fps": 5,
+        "extension": "gif"
     }
 }

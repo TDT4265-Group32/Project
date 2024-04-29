@@ -1,0 +1,6 @@
+{
+    "model_path": "path/to/model",
+    "params": {
+        "data": "coco128.yaml"
+    }
+}

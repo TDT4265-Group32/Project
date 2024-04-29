@@ -4,8 +4,12 @@ import cv2
 import argparse
 import glob
 from tqdm import tqdm
+from moviepy.editor import VideoFileClip
 
-def create_video(src_path, dst_path='unnamed_video.mp4'):
+def create_video(src_path: str,
+                 filename: str = "unnamed_video",
+                 extension: str = 'gif',
+                 fps: int = 5):
     """Create a video from a series of PNGs.
     
     Args:
@@ -35,8 +39,15 @@ def create_video(src_path, dst_path='unnamed_video.mp4'):
         print(f'Successfully extracted dimensions: {frame.shape[0:2]}')
         height, width, _ = frame.shape
 
-    fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    video = cv2.VideoWriter(dst_path, fourcc, 20, (width, height))
+    match extension:
+        case 'gif':
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        case 'mp4':
+            fourcc = cv2.VideoWriter_fourcc(*'mp4v')
+        case _:
+            raise ValueError(f'Unsupported extension: {extension}')
+
+    video = cv2.VideoWriter(f'{filename}.mp4', fourcc, fps, (width, height))
 
     try:
         for image in tqdm(images, desc=f'Creating video'):
@@ -45,14 +56,9 @@ def create_video(src_path, dst_path='unnamed_video.mp4'):
         raise Exception(f'Encountered error: {e} while creating video.')
 
     video.release()
-    print(f'Video created at: {dst_path}')
+    print(f'Video created at: {filename}.mp4')
     
-if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='Turn series of PNGs into a video.')
-    parser.add_argument('--folder', type=str, help='Folder containing PNGs')
-    parser.add_argument('--destination', type=str, default='unnamed_video.mp4', help='Destination of the video')
-    args = parser.parse_args()
-    src_path = args.folder
-    dst_path = args.destination
-    
-    create_video(src_path, dst_path)
+    if extension == 'gif':
+        clip = VideoFileClip(f'{filename}.mp4')
+        clip.write_gif(f'{filename}.gif')
+        print(f'GIF created at: {filename}.gif')
