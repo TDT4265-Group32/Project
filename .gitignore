@@ -9,6 +9,8 @@ datasets/**/images
 datasets/**/labels
 export/**
 import/**
+**/*.zip
+datasets/**/LICENSE
 
 !**/.gitkeep
 # vscode
