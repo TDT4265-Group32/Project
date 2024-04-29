@@ -13,10 +13,11 @@ from pathlib import Path
 import argparse
 from torch.utils.data import DataLoader
 from torchvision.transforms import functional as F
+from torchvision.transforms import v2 as T
 from datamodule import CustomDataModule, NAPLabLiDAR
 
 torch.set_float32_matmul_precision('medium')
-config = munch.munchify(yaml.load(open("config.yaml"), Loader=yaml.FullLoader))
+config = munch.munchify(yaml.load(open("configs/FasterRCNN/faster_rcnn_config.yaml"), Loader=yaml.FullLoader))
 
 class FasterRCNN(pl.LightningModule):
     def __init__(self, config):
@@ -79,11 +80,18 @@ if __name__ == "__main__":
     val_img_paths = []
     val_annotations = []
 
-    # TODO: Add transforms
-    
+    train_transform = T.Compose([
+        T.Resize((1024, 1024)),
+        T.RandomHorizontalFlip(),
+        T.RandomRotation(30),
+        T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+        T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
+        T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
+        T.ToTensor(),
+    ])
 
     train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=train_transform)
-    val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=val_transform)
+    val_dataset = NAPLabLiDAR(val_img_paths, val_annotations)
 
     dm = CustomDataModule(train_dataset, val_dataset, batch_size=32, num_workers=4)
 
