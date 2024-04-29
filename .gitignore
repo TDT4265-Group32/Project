@@ -8,6 +8,7 @@ results/**
 *.txt
 datasets/**/images
 datasets/**/labels
+wandb/**
 export/**
 import/**
 **/*.zip
