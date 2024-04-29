@@ -15,7 +15,6 @@ from tools.load_dataset import copy_datasets
 def main(args):
     ARCHITECTURE = args.type
     MODE = args.mode
-    MODEL = args.model_path
     # Only dataset used in the project
     DATASET = 'NAPLab-LiDAR'
     copy_datasets()
@@ -31,6 +30,11 @@ def main(args):
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
 
             # Use custom YOLO model
+            if args.model_path is not None:
+                MODEL = args.model_path
+            else:
+                MODEL = CONFIG_YAML['model_path']
+
             model = YOLO(MODEL)
             # Load parameters to be passed onto train, validate, or predict functions
             PARAMS = CONFIG_YAML['params']
@@ -90,7 +94,7 @@ if __name__ == "__main__":
     parser.add_argument('--mode', type=str, 
                         help='Mode to run the script in \
                             \nOptions: train, val, pred, bench')
-    parser.add_argument('--model_path', type=str, 
+    parser.add_argument('--model_path', type=str, default=None,
                         help='Path to the model weights file, e.g. yolov8l.pt')
     args = parser.parse_args()
     main(args)
