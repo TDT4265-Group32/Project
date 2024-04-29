@@ -7,6 +7,7 @@ yolo*.pt
 *.txt
 datasets/**/images
 datasets/**/labels
+wandb/**
 
 !**/.gitkeep
 # vscode
