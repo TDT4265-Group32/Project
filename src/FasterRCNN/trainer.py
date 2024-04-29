@@ -3,7 +3,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Learning
 from lightning.pytorch.loggers import WandbLogger
 import torch
 from torch import nn
-from torchvision.models.detection import fasterrcnn_resnet50_fpn
+from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
 from torchmetrics import Accuracy
 import munch
 import yaml
@@ -25,7 +25,7 @@ class FasterRCNN(pl.LightningModule):
         super().__init__()
         self.config = config
 
-        self.model = fasterrcnn_resnet50_fpn(pretrained=True)
+        self.model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT)
 
         # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
         # self.model.roi_heads.box_predictor = torch.nn.Linear(in_features, num_classes)
@@ -75,11 +75,11 @@ if __name__ == "__main__":
     
     pl.seed_everything(42)
     
-    train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
-    train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
+    train_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/train/*.PNG")
+    train_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/train/*.txt")
 
-    val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
-    val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
+    val_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/val/*.PNG")
+    val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
     train_transform = T.Compose([
         T.Resize((1024, 1024)),
@@ -119,7 +119,11 @@ if __name__ == "__main__":
                             save_weights_only=True,
                             save_top_k=1),
         ])
-    if not config.test_model:
-        trainer.fit(model, datamodule=dm)
     
-    trainer.test(model, datamodule=dm)
+    train_dataloader = dm.train_dataloader()
+    # test_dataloader = dm.test_dataloader()
+
+    if not config.test_model:
+        trainer.fit(model, train_dataloaders=train_dataloader)
+    
+    # trainer.test(model, test_dataloaders=test_dataloader)
