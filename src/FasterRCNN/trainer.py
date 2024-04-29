@@ -119,7 +119,11 @@ if __name__ == "__main__":
                             save_weights_only=True,
                             save_top_k=1),
         ])
-    if not config.test_model:
-        trainer.fit(model, datamodule=dm.train_dataloader())
     
-    trainer.test(model, datamodule=dm.test_dataloader())
+    train_dataloader = dm.train_dataloader()
+    # test_dataloader = dm.test_dataloader()
+
+    if not config.test_model:
+        trainer.fit(model, train_dataloaders=train_dataloader)
+    
+    # trainer.test(model, test_dataloaders=test_dataloader)

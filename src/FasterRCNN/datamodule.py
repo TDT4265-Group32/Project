@@ -37,11 +37,17 @@ class CustomDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
+    # TODO: rewrite to datamodules
+
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, shuffle=True, num_workers=self.num_workers)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
+    
+    # TODO: Implement test_dataloader with a test dataset
+    # def test_dataloader(self):
+    #     return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers)
 
 # # Example usage:
 # train_dataset = CustomDataset(train_img_paths, train_annotations, transform=train_transform)
