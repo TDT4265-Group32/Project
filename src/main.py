@@ -1,8 +1,7 @@
 import random
 import os
 import argparse
-import json
-import time
+import yaml
 from math import ceil
 
 from codecarbon import EmissionsTracker
@@ -27,7 +26,7 @@ def main(args):
         case 'YOLOv8':
             YAML_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
             with open(YAML_PATH) as yaml_config_file:
-                CONFIG_YAML = json.load(yaml_config_file)
+                CONFIG_YAML = yaml.safe_load(yaml_config_file)
 
             # Use custom YOLO model
             model = YOLO(MODEL)
