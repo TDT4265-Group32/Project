@@ -1,5 +1,5 @@
 {
-    "model_path": "import/gen2/clab23-large/train/weights/best.pt",
+    "model_path": "path/to/model",
     "params": {
         "data": "coco128.yaml"
     }
