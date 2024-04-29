@@ -30,19 +30,20 @@ def _copy_files(images,
         for label in tqdm(labels, desc=f'Copying {subset} labels'):
             shutil.copy(label, lbl_subset_dir)
 
-def partition_dataset(dataset: str,
-                      train_ratio: float = 0.8):
+def partition_dataset(train_ratio: float = 0.8):
     """Divide a dataset into training, validation, and test subsets.
 
     Args:
         dataset (str): Which dataset to partition
         train_ratio (float, optional): _description_. Defaults to 0.8, val_ratio is the complement of train_ratio.
     """
-    print(f'Partitioning dataset in {dataset} into train, val, and test subsets...\n')
+    DATASET = 'NAPLab-LiDAR'
+    
+    print(f'Partitioning dataset in {DATASET} into train, val, and test subsets...\n')
     try:
-        dataset_path = pathlib.Path(f'datasets/{dataset}')
+        dataset_path = pathlib.Path(f'datasets/{DATASET}')
     except FileNotFoundError:
-        raise Exception(f"Dataset {dataset} not found")
+        raise Exception(f"Dataset {DATASET} not found")
 
     assert train_ratio < 1, 'Train ratio must be less than 1'
     assert train_ratio > 0, 'Train ratio must be greater than 0'
@@ -61,8 +62,7 @@ def partition_dataset(dataset: str,
     _copy_files(train_images, train_labels, 'train', dataset_path)
     _copy_files(val_images, val_labels, 'val', dataset_path)
 
-def partition_video_dataset(dataset: str,
-                            num_clips: int,
+def partition_video_dataset(num_clips: int,
                             num_val: int = 1,
                             seed: int = None):
     """
@@ -75,18 +75,19 @@ def partition_video_dataset(dataset: str,
     num_val (int): Number of validation clips
     seed (int): Random seed for reproducibility
     """
+    DATASET = 'NAPLab-LiDAR'
     
     assert num_val < num_clips, 'Number of validation clips must be less than total number of clips'
     
     try:
-        dataset_path = pathlib.Path(f'datasets/{dataset}')
+        dataset_path = pathlib.Path(f'datasets/{DATASET}')
     except FileNotFoundError:
-        raise Exception(f"Dataset {dataset} not found")
+        raise Exception(f"Dataset {DATASET} not found")
 
     # Extract labels and names from the dataset
     labels = sorted(dataset_path.glob("labels/*.txt"))
 
-    if dataset == 'NAPLab-LiDAR':
+    if DATASET == 'NAPLab-LiDAR':
         assert num_clips == 18, 'NAPLab-LiDAR dataset must be split into 18 folds'
         # test frames are 201 - 301, assumes test frames removed from dataset
         video_labels = []

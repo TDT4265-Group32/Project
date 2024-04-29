@@ -1,0 +1,12 @@
+model_path: yolov8l.pt
+loss_function:
+  use_dfl: true
+  use_giou: false
+  use_diou: false
+  use_ciou: true
+params:
+  data: datasets/NAPLab-LiDAR/data.yaml
+  time: 12
+  imgsz: 1024
+  hsv_h: 0.0
+  hsv_s: 0.0
