@@ -110,6 +110,11 @@ class CustomYOLO(YOLO):
 
         return results
 
+    def benchmark(self, params):
+        results = super().benchmark(**params)
+
+        return results
+
     def set_dfl(self, active: bool):
         """Set the DFL flag in the loss function.
 
@@ -133,7 +138,7 @@ def main(args):
     MODE = args.mode
     DATASET = args.dataset
 
-    assert MODE in ['train', 'val', 'pred'], 'Invalid mode. Please choose from: train, validate, predict'
+    assert MODE in ['train', 'val', 'pred', 'bench'], 'Invalid mode. Please choose from: train, validate, predict'
 
     # Load the configuration file
     JSON_PATH = os.path.join('configs', 'YOLOv8', DATASET, MODE + '.json')
@@ -213,8 +218,14 @@ def main(args):
 
             # Create video from sequence of PNGs
             create_video(os.path.join('results', DATASET),
-                         dst_path=os.path.join(CONFIG_JSON['video']['path'],
-                                               CONFIG_JSON['video']['filename']))
+                         filename=os.path.join(CONFIG_JSON['video']['path'],
+                                               CONFIG_JSON['video']['filename']),
+                         extension=CONFIG_JSON['video']['extension'],
+                         fps=CONFIG_JSON['video']['fps'])
+    elif MODE == 'bench':
+        model_path = CONFIG_JSON['model_path']
+        
+        model.benchmark(PARAMS)
 
 if __name__ == "__main__":
     # Make results "deterministic"
@@ -223,7 +234,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Script for training model.', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--mode', type=str, 
                         help='Mode to run the script in \
-                            \nOptions: train, validate, predict')
+                            \nOptions: train, val, pred, bench')
     parser.add_argument('--dataset', type=str, default='NAPLab-LiDAR', 
                         help='Name of dataset \
                             \nDefault: NAPLab-LiDAR \
