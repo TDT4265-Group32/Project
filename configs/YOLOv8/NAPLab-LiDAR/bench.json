@@ -1,5 +1,5 @@
 {
-    "model_path": "path/to/model",
+    "model_path": "runs/detect/train/weights/best.pt",
     "params": {
         "data": "coco128.yaml"
     }
