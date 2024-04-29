@@ -75,11 +75,11 @@ if __name__ == "__main__":
     
     pl.seed_everything(42)
     
-    train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
-    train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
+    train_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/train/*.PNG")
+    train_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/train/*.txt")
 
-    val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
-    val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
+    val_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/val/*.PNG")
+    val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
     train_transform = T.Compose([
         T.Resize((1024, 1024)),
@@ -120,6 +120,6 @@ if __name__ == "__main__":
                             save_top_k=1),
         ])
     if not config.test_model:
-        trainer.fit(model, datamodule=dm)
+        trainer.fit(model, datamodule=dm.train_dataloader())
     
-    trainer.test(model, datamodule=dm)
+    trainer.test(model, datamodule=dm.test_dataloader())
