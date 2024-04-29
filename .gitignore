@@ -3,7 +3,8 @@ runs/**
 prev_runs/**
 slurm/results/**
 results/**
-yolo*.pt
+*.pt
+*.torchscript
 *.txt
 datasets/**/images
 datasets/**/labels
