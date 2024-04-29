@@ -7,6 +7,7 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchmetrics import Accuracy
 import munch
 import yaml
+import glob
 from pathlib import Path
 
 
@@ -74,11 +75,11 @@ if __name__ == "__main__":
     
     pl.seed_everything(42)
     
-    train_img_paths = []
-    train_annotations = []
+    train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
+    train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
 
-    val_img_paths = []
-    val_annotations = []
+    val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
+    val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
 
     train_transform = T.Compose([
         T.Resize((1024, 1024)),
