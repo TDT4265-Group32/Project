@@ -1,14 +1,17 @@
 {
-    "model_path": "yolov8m.pt",
+    "model_path": "yolov8l.pt",
     "loss_function": {
-        "use_dfl": false,
+        "use_dfl": true,
         "use_giou": false,
         "use_diou": false,
-        "use_ciou": false
+        "use_ciou": true
     },
     "params": {
         "data": "datasets/NAPLab-LiDAR/data.yaml",
-        "epochs": 1000
+        "time": 12,
+        "imgsz": 1024,
+        "hsv_h": 0.0,
+        "hsv_s": 0.0
     },
     "partition": {
         "mode": "images",

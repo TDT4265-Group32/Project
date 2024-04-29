@@ -1,5 +1,5 @@
 {
-    "model_path": "runs/detect/train<best-train-index>/weights/best.pt",
+    "model_path": "runs/detect/train/weights/best.pt",
     "params": {
         "max_det": 300
     }
