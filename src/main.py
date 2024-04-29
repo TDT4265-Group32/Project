@@ -16,6 +16,8 @@ def main(args):
     ARCHITECTURE = args.type
     MODE = args.mode
     MODEL = args.model_path
+    # Only dataset used in the project
+    DATASET = 'NAPLab-LiDAR'
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'bench'], 'Invalid mode. Please choose from: train, validate, predict'
@@ -23,21 +25,21 @@ def main(args):
     # Load the configuration file
     match ARCHITECTURE:
         case 'YOLOv8':
-            JSON_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
-            with open(JSON_PATH) as json_config_file:
-                CONFIG_JSON = json.load(json_config_file)
+            YAML_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
+            with open(YAML_PATH) as yaml_config_file:
+                CONFIG_YAML = json.load(yaml_config_file)
 
             # Use custom YOLO model
             model = YOLO(MODEL)
             # Load parameters to be passed onto train, validate, or predict functions
-            PARAMS = CONFIG_JSON['params']
+            PARAMS = CONFIG_YAML['params']
 
             if MODE == 'train':
                 # Set the loss function parameters
-                model.set_dfl(CONFIG_JSON['loss_function']['use_dfl'])
-                model.set_iou_method('giou', CONFIG_JSON['loss_function']['use_giou'])
-                model.set_iou_method('diou', CONFIG_JSON['loss_function']['use_diou'])
-                model.set_iou_method('ciou', CONFIG_JSON['loss_function']['use_ciou'])
+                model.set_dfl(CONFIG_YAML['loss_function']['use_dfl'])
+                model.set_iou_method('giou', CONFIG_YAML['loss_function']['use_giou'])
+                model.set_iou_method('diou', CONFIG_YAML['loss_function']['use_diou'])
+                model.set_iou_method('ciou', CONFIG_YAML['loss_function']['use_ciou'])
 
                 # Initialize the emissions tracker
                 tracker = EmissionsTracker()
@@ -59,22 +61,26 @@ def main(args):
                 model.predict(PARAMS)
 
                 # Only sensible to create video from sequence of PNGs for NAPLab-LiDAR dataset
-                if CONFIG_JSON['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
+                if CONFIG_YAML['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
 
                     # Create path if it doesn't exist
-                    if not os.path.exists(CONFIG_JSON['video']['path']):
-                        os.makedirs(CONFIG_JSON['video']['path'])
+                    if not os.path.exists(CONFIG_YAML['video']['path']):
+                        os.makedirs(CONFIG_YAML['video']['path'])
 
                     # Create video from sequence of PNGs
                     create_video(os.path.join('results', DATASET),
-                                filename=os.path.join(CONFIG_JSON['video']['path'],
-                                                    CONFIG_JSON['video']['filename']),
-                                extension=CONFIG_JSON['video']['extension'],
-                                fps=CONFIG_JSON['video']['fps'])
+                                filename=os.path.join(CONFIG_YAML['video']['path'],
+                                                    CONFIG_YAML['video']['filename']),
+                                extension=CONFIG_YAML['video']['extension'],
+                                fps=CONFIG_YAML['video']['fps'])
+
             elif MODE == 'bench':
-                model_path = CONFIG_JSON['model_path']
-                
+                # Benchmark the model
+                # NOTE: This attempts to export model to all available formats
                 model.benchmark(PARAMS)
+
+        case 'FasterRCNN':
+            raise NotImplementedError('Insert FasterRCNN code here')
 
 if __name__ == "__main__":
     # Make results "deterministic"
