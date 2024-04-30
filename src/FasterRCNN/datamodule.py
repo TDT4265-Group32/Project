@@ -8,9 +8,9 @@ import glob
 from torchvision.transforms import v2 as T
 
 class NAPLabLiDAR(Dataset):
-    def __init__(self, img_paths, annotations, transform=None):
+    def __init__(self, img_paths, annotation_paths, transform=None):
         self.img_paths = img_paths
-        self.annotations = annotations
+        self.annotation_paths = annotation_paths
         self.transform = transform
 
     def __len__(self):
@@ -18,19 +18,36 @@ class NAPLabLiDAR(Dataset):
 
     def __getitem__(self, idx):
         img_path = self.img_paths[idx]
-        annotation = self.annotations[idx]
+        annotation_path = self.annotation_paths[idx]
         
         # Load image
-        img = Image.open(img_path).convert("L")
+        img = Image.open(img_path).convert("RGB")
         
+        # Load annotations from YOLO format text file
+        with open(annotation_path, 'r') as file:
+            annotations = []
+            for line in file:
+                # Parse annotation line
+                parts = line.strip().split(' ')
+                class_label = int(parts[0])
+                x_center, y_center, width, height = map(float, parts[1:])
+                
+                # Convert YOLO format to bounding box coordinates (x_min, y_min, x_max, y_max)
+                x_min = (x_center - width / 2)
+                y_min = (y_center - height / 2)
+                x_max = (x_center + width / 2)
+                y_max = (y_center + height / 2)
+                
+                annotations.append({
+                    'bbox': [x_min, y_min, x_max, y_max],
+                    'class_label': class_label
+                })
+
         # Apply transformations
         if self.transform:
-            img = self.transform(img)
+            img, annotations = self.transform(img, annotations)
         
-        # Prepare targets (annotations)
-        # You need to define how to process your annotations based on your dataset's format
-        
-        return img, annotation
+        return img, annotations
 
 class CustomDataModule(pl.LightningDataModule):
     def __init__(self, batch_size=32, num_workers=4):
@@ -38,11 +55,11 @@ class CustomDataModule(pl.LightningDataModule):
         self.batch_size = batch_size
         self.num_workers = num_workers
 
-        train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
-        train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
+        train_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/train/*.PNG")
+        train_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/train/*.txt")
 
-        val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
-        val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
+        val_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/val/*.PNG")
+        val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
         self.train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=self.get_transforms("train"))
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
