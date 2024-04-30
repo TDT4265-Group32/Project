@@ -37,12 +37,10 @@ class NAPLabLiDAR(Dataset):
                 y_min = (y_center - height / 2)
                 x_max = (x_center + width / 2)
                 y_max = (y_center + height / 2)
-
-                
                 
                 annotations.append({
                     'boxes': torch.as_tensor([x_min, y_min, x_max, y_max], dtype=torch.float32).unsqueeze(0),
-                    'class_label': torch.as_tensor(class_label).unsqueeze(0),
+                    'labels': torch.as_tensor(class_label).unsqueeze(0),
                 })
 
         # Apply transformations
