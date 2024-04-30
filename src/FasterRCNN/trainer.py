@@ -45,7 +45,7 @@ class FasterRCNN(pl.LightningModule):
         # Calculate GIoU loss
         losses = []
         for pred_boxes, gt_boxes in zip(y_hat['boxes'], y['boxes']):
-            loss = giou_loss(pred_boxes, gt_boxes)
+            loss = self.giou_loss(pred_boxes, gt_boxes)
             losses.append(loss)
         
         # Compute average loss for the batch
