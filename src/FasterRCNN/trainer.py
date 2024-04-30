@@ -74,27 +74,8 @@ class FasterRCNN(pl.LightningModule):
 if __name__ == "__main__":
     
     pl.seed_everything(42)
-    
-    train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
-    train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
 
-    val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
-    val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
-
-    train_transform = T.Compose([
-        T.Resize((1024, 1024)),
-        T.RandomHorizontalFlip(),
-        T.RandomRotation(30),
-        T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-        T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
-        T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
-        T.ToTensor(),
-    ])
-
-    train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=train_transform)
-    val_dataset = NAPLabLiDAR(val_img_paths, val_annotations)
-
-    dm = CustomDataModule(train_dataset, val_dataset, batch_size=32, num_workers=4)
+    dm = CustomDataModule(batch_size=32, num_workers=4)
 
     if config.checkpoint_path:
         model = FasterRCNN.load_from_checkpoint(checkpoint_path=config.checkpoint_path, config=config)
@@ -119,7 +100,8 @@ if __name__ == "__main__":
                             save_weights_only=True,
                             save_top_k=1),
         ])
-    if not config.test_model:
-        trainer.fit(model, datamodule=dm)
     
-    trainer.test(model, datamodule=dm)
+    if not config.test_model:
+        trainer.fit(model, train_dataloaders=dm.train_dataloader())
+    
+    trainer.test(model, test_dataloaders=dm.test_dataloader())

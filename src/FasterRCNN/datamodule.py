@@ -3,6 +3,7 @@ from torch.utils.data import Dataset, DataLoader
 from torchvision.transforms import functional as F
 from PIL import Image
 import pytorch_lightning as pl
+import glob
 
 from torchvision.transforms import v2 as T
 
@@ -32,12 +33,19 @@ class NAPLabLiDAR(Dataset):
         return img, annotation
 
 class CustomDataModule(pl.LightningDataModule):
-    def __init__(self, train_dataset, val_dataset, batch_size=32, num_workers=4):
+    def __init__(self, batch_size=32, num_workers=4):
         super().__init__()
-        self.train_dataset = train_dataset
-        self.val_dataset = val_dataset
         self.batch_size = batch_size
         self.num_workers = num_workers
+
+        train_img_paths = glob.glob("datasets/NAPLabLiDAR/images/train/*.PNG")
+        train_annotations = glob.glob("datasets/NAPLabLiDAR/labels/train/*.txt")
+
+        val_img_paths = glob.glob("datasets/NAPLabLiDAR/images/val/*.PNG")
+        val_annotations = glob.glob("datasets/NAPLabLiDAR/labels/val/*.txt")
+
+        self.train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=self.get_transforms("train"))
+        self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
     
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True)
@@ -46,21 +54,12 @@ class CustomDataModule(pl.LightningDataModule):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False)
     
     def get_transforms(self,split):
-        mean = [0.4914, 0.4822, 0.4465]
-        std = [0.2023, 0.1994, 0.2010]
+        mean = [0.4696]
+        std = [0.0339]
         
-        train_transform = T.Compose([
-            T.Resize((1024, 1024)),
-            T.RandomHorizontalFlip(),
-            T.RandomRotation(30),
-            T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
-            T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
-            T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
-            T.ToTensor(),
-        ])
-
         shared_transforms = [
             T.ToTensor(),
+            T.Resize((1024, 1024)),
             T.Normalize(mean, std) 
         ]
         
@@ -69,18 +68,19 @@ class CustomDataModule(pl.LightningDataModule):
                 *shared_transforms,
                 T.RandomCrop(32, padding=4, padding_mode='reflect'), 
                 T.RandomHorizontalFlip(),
-                # ...
+                T.RandomRotation(30),
+                T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
+                T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
             ])
             
         elif split == "val":
             return T.Compose([
                 *shared_transforms,
-                # ...
             ])
         elif split == "test":
             return T.Compose([
                 *shared_transforms,
-                # ...
             ])
 
 # # Example usage:
