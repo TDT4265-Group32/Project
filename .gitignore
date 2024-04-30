@@ -19,6 +19,7 @@ datasets/**/LICENSE
 **/*.cache
 
 !datasets/NAPLab-LiDAR/data.yaml
+!datasets/NAPLab-LiDAR/data_test.yaml
 !**/.gitkeep
 
 # vscode
