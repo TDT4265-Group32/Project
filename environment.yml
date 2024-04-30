@@ -29,3 +29,4 @@ dependencies:
     - moviepy
     - lightning
     - pyyaml
+    - munch
