@@ -65,23 +65,23 @@ class CustomDataModule(pl.LightningDataModule):
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
     
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True, collate_fn=lambda x: x)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=lambda x: x)
     
-    def get_transforms(self,split):
+    def get_transforms(self, split):
         mean = [0.4696]
         std = [0.0339]
         
         shared_transforms = [
             T.ToTensor(),
-            T.Resize((1024, 1024)),
             T.Normalize(mean, std) 
         ]
         
         if split == "train":
             return T.Compose([
+                T.Resize((1024, 1024)),
                 *shared_transforms,
                 T.RandomCrop(32, padding=4, padding_mode='reflect'), 
                 T.RandomHorizontalFlip(),
@@ -89,15 +89,14 @@ class CustomDataModule(pl.LightningDataModule):
                 T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
                 T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
                 T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
+                T.Resize((1024, 1024)),  # Ensure all images are the same size
             ])
             
-        elif split == "val":
+        elif split == "val" or split == "test":
             return T.Compose([
+                T.Resize((1024, 1024)),
                 *shared_transforms,
-            ])
-        elif split == "test":
-            return T.Compose([
-                *shared_transforms,
+                T.Resize((1024, 1024)),  # Ensure all images are the same size
             ])
 
 # # Example usage:
