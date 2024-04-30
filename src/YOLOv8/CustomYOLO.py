@@ -1,7 +1,10 @@
 import os
 import glob
+import atexit
+import logging
 
 import torch
+from codecarbon import EmissionsTracker
 
 from ultralytics import YOLO
 from ultralytics.utils.loss import BboxLoss
@@ -55,13 +58,31 @@ class CustomYOLO(YOLO):
         super().load(weights)
         self.fuse()
     
-    def train(self, train_params):
+    def train(self, train_params, loss_params):
         """Train the YOLOv8 model.
         
         Args:
         train_params (dict): Dictionary containing training parameters
+        loss_params (dict): Dictionary containing loss parameters
         """
+        # Set the DFL and IoU methods
+        self.set_dfl(loss_params['use_dfl'])
+        self.set_iou_method('giou', loss_params['use_giou'])
+        self.set_iou_method('diou', loss_params['use_diou'])
+        self.set_iou_method('ciou', loss_params['use_ciou'])
+
+        # Initialize the emissions tracker
+        tracker = EmissionsTracker(log_level=logging.WARNING)
+        tracker.start()
+        atexit.register(tracker.stop)
+
+        # Start training
         result = super().train(**train_params)
+
+        # Stop the timer and finalize the power consumption
+        tracker.stop()
+        atexit.unregister(tracker.stop)
+
         return result
 
     def validate(self, val_params):

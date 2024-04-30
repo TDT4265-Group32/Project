@@ -42,14 +42,18 @@ def extract_dataset():
         label_name = f"frame_{i:06d}.txt"
         source_image_path = os.path.join(image_dir, image_name)
         source_label_path = os.path.join(label_dir, label_name)
-        try:
-            destination_image_path = os.path.join(test_img_dir, image_name)
-            destination_label_path = os.path.join(test_lbl_dir, label_name)
-            shutil.move(source_image_path, destination_image_path)
-            shutil.move(source_label_path, destination_label_path)
-        except FileNotFoundError:
-            print(f"File {image_name} or {label_name} not found.")
-            continue
+        if os.path.exists(source_image_path) and os.path.exists(source_label_path):
+            try:
+                destination_image_path = os.path.join(test_img_dir, image_name)
+                destination_label_path = os.path.join(test_lbl_dir, label_name)
+                shutil.move(source_image_path, destination_image_path)
+                shutil.move(source_label_path, destination_label_path)
+            except FileNotFoundError as e:
+                if os.path.exists(destination_image_path) and os.path.exists(destination_label_path):
+                    continue
+                else:
+                    raise FileNotFoundError(f"{e}: Please ensure that the test image and label directories exist.")
+
     print("Test images and labels moved successfully.")
 
 def export_data(architecture: str):

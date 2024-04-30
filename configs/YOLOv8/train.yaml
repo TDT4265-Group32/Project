@@ -6,7 +6,8 @@ loss_function: # Loss function to use
   use_ciou: true
 params: # Parameters for YOLO training
   data: datasets/NAPLab-LiDAR/data.yaml
-  time: 6
+  name: train
+  epochs: 1000
   imgsz: 1024
   hsv_h: 0.0
   hsv_s: 0.0
