@@ -1,3 +1,4 @@
 model_path: runs/detect/train/weights/best.pt # Path to the trained model
 params: # Parameters for YOLO prediction
+  data: datasets/NAPLab-LiDAR/val_on_test.yaml
   max_det: 300
