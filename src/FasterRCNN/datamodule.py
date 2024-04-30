@@ -37,10 +37,12 @@ class NAPLabLiDAR(Dataset):
                 y_min = (y_center - height / 2)
                 x_max = (x_center + width / 2)
                 y_max = (y_center + height / 2)
+
+                
                 
                 annotations.append({
-                    'bbox': [x_min, y_min, x_max, y_max],
-                    'class_label': class_label
+                    'boxes': torch.as_tensor([x_min, y_min, x_max, y_max], dtype=torch.float32).unsqueeze(0),
+                    'class_label': torch.as_tensor(class_label).unsqueeze(0),
                 })
 
         # Apply transformations
@@ -61,6 +63,11 @@ class CustomDataModule(pl.LightningDataModule):
         val_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/val/*.PNG")
         val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
+        assert len(train_img_paths) > 0, "No training images found"
+        assert len(val_img_paths) > 0, "No validation images found"
+        assert len(train_img_paths) == len(train_annotations), f"Number of images and annotations do not match for train set"
+        assert len(val_img_paths) == len(val_annotations), f"Number of images and annotations do not match for val set"
+
         self.train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=self.get_transforms("train"))
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
     
@@ -71,8 +78,8 @@ class CustomDataModule(pl.LightningDataModule):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=lambda x: x)
     
     def get_transforms(self, split):
-        mean = [0.4696]
-        std = [0.0339]
+        mean = [0.4696, 0.4696, 0.4696]
+        std = [0.0339, 0.0339, 0.0339]
         
         shared_transforms = [
             T.ToTensor(),

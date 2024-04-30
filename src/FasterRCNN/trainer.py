@@ -3,6 +3,7 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Learning
 from lightning.pytorch.loggers import WandbLogger
 import torch
 from torch import nn
+from torch.utils.data._utils.collate import default_collate
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchmetrics import Accuracy
 import munch
@@ -38,12 +39,18 @@ class FasterRCNN(pl.LightningModule):
         lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=self.config.max_epochs)
         return [optimizer], [{"scheduler": lr_scheduler, "interval": "epoch"} ]
 
-    def forward(self, x):
-        return self.model(x)
+    def forward(self, x, y=None):
+        return self.model(x, y)
 
     def training_step(self, batch, batch_idx):
-        x, y = batch
-        y_hat = self.forward(x)
+        x = []
+        y = []
+
+        for idx, pack in enumerate(batch):
+            x.append(pack[0])
+            y.append(pack[1])
+
+        y_hat = self.forward(x, y)
         loss = self.loss_fn(y_hat, y)
         acc = self.acc_fn(y_hat, y)
         self.log_dict({
