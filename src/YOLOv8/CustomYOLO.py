@@ -1,20 +1,13 @@
 import os
-import argparse
-import json
 import glob
-import time
-from math import ceil
 
 import torch
-from tools.png_to_video import create_video
 
 from ultralytics import YOLO
 from ultralytics.utils.loss import BboxLoss
 from ultralytics.utils.metrics import bbox_iou
 from ultralytics.utils.tal import bbox2dist
 from tqdm import tqdm
-from codecarbon import EmissionsTracker
-import random
 
 class CustomBboxLoss(BboxLoss):
     """Custom bounding box loss class."""
@@ -110,6 +103,11 @@ class CustomYOLO(YOLO):
 
     def benchmark(self, params):
         results = super().benchmark(**params)
+
+        return results
+
+    def export(self, params):
+        results = super().export(**params)
 
         return results
 

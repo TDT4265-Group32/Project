@@ -1,21 +1,26 @@
 # Custom
+*.pt
+*.torchscript
+*.txt
+*.csv
+
+datasets/NAPLab-LiDAR/**
 runs/**
 prev_runs/**
 slurm/results/**
 results/**
-*.pt
-*.torchscript
-*.txt
-datasets/**/images
-datasets/**/labels
 wandb/**
 export/**
 import/**
-**/*.zip
+
 datasets/**/LICENSE
+
+**/*.zip
 **/*.cache
 
+!datasets/NAPLab-LiDAR/data.yaml
 !**/.gitkeep
+
 # vscode
 .vscode/
 

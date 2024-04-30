@@ -1,8 +1,9 @@
 import os
 import shutil
+import glob
 from tqdm import tqdm
 
-def copy_datasets():
+def extract_dataset():
     """Copy the NAPLab-LiDAR dataset from the source directory to the target directory.
     
     The source directory is determined by checking if the directory exists on Cybele and Idun.
@@ -51,5 +52,32 @@ def copy_datasets():
             continue
     print("Test images and labels moved successfully.")
 
+def export_data(architecture: str):
+    
+    # Create the directory if it doesn't exist
+    if not os.path.exists('export'):
+        os.makedirs('export')
+    else:
+        shutil.rmtree('export')
+        os.makedirs('export')
+
+    # Find most recent training folder
+    training_folder = sorted(glob.glob('runs/detect/train*'))[-1]
+    validation_folder = sorted(glob.glob('runs/detect/val*'))[-1]
+    prediction_folder = sorted(glob.glob(f'results/{architecture}'))[-1]
+    configs_folder = sorted(glob.glob(f'configs/{architecture}'))[-1]
+    emissions_file = glob.glob('emissions.csv')[-1]
+
+    print('Attempting to export data...')
+    try:
+        shutil.copytree(training_folder, 'export/train')
+        shutil.copytree(validation_folder, 'export/val')
+        shutil.copytree(prediction_folder, 'export/predict')
+        shutil.copy(emissions_file, 'export/emissions.csv')
+    except FileNotFoundError as e:
+        print(f'{e}: Please ensure that the training, validation, and prediction folders exist.')
+    else:
+        print('Data exported successfully.')
+
 if __name__ == "__main__":
-    copy_datasets()
+    print("Copying dataset...")

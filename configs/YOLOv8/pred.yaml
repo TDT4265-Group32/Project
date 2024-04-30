@@ -4,7 +4,7 @@ params: # Parameters for YOLO prediction
   show: false
 video: # Parameters for creating video
   create_video: true
-  path: results/NAPLab-LiDAR/videos
+  path: results/YOLOv8/videos
   filename: test
   fps: 5
   extension: gif

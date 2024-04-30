@@ -8,19 +8,17 @@ from codecarbon import EmissionsTracker
 
 import FasterRCNN
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
-from tools.partition_dataset import partition_dataset
-from tools.png_to_video import create_video
-from tools.load_dataset import copy_datasets
+from tools.data_partitioner import partition_dataset
+from tools.video_formatter import create_video
+from tools.dataloader import extract_dataset, export_data
 
 def main(args):
     ARCHITECTURE = args.type
     MODE = args.mode
-    # Only dataset used in the project
-    DATASET = 'NAPLab-LiDAR'
-    copy_datasets()
+    extract_dataset()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
-    assert MODE in ['train', 'val', 'pred', 'bench'], 'Invalid mode. Please choose from: train, validate, predict'
+    assert MODE in ['train', 'val', 'pred', 'bench', 'export'], 'Invalid mode. Please choose from: train, validate, predict'
 
     match ARCHITECTURE:
         case 'YOLOv8':
@@ -64,13 +62,13 @@ def main(args):
                 case 'pred':
 
                     model.predict(PARAMS)
-                    if CONFIG_YAML['video']['create_video'] and DATASET == 'NAPLab-LiDAR':
+                    if CONFIG_YAML['video']['create_video']:
                         # Create path if it doesn't exist
                         if not os.path.exists(CONFIG_YAML['video']['path']):
                             os.makedirs(CONFIG_YAML['video']['path'])
 
                     # Create video from sequence of PNGs
-                    create_video(os.path.join('results', DATASET),
+                    create_video(os.path.join('results', ARCHITECTURE),
                                 filename=os.path.join(CONFIG_YAML['video']['path'],
                                                     CONFIG_YAML['video']['filename']),
                                 extension=CONFIG_YAML['video']['extension'],
@@ -79,6 +77,11 @@ def main(args):
                     # Benchmark the model
                     # NOTE: This attempts to export model to all available formats
                     model.benchmark(PARAMS)
+
+                case 'export':
+                    # Export the model to a specified format
+                    export_data(ARCHITECTURE)
+                    model.export(PARAMS)
 
         case 'FasterRCNN':
             raise NotImplementedError('Insert FasterRCNN code here')
@@ -93,7 +96,7 @@ if __name__ == "__main__":
                             \nOptions: YOLOv8, FasterRCNN')
     parser.add_argument('--mode', type=str, 
                         help='Mode to run the script in \
-                            \nOptions: train, val, pred, bench')
+                            \nOptions: train, val, pred, bench, export')
     parser.add_argument('--model_path', type=str, default=None,
                         help='Path to the model weights file, e.g. yolov8l.pt')
     args = parser.parse_args()
