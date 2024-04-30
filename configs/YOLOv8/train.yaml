@@ -1,4 +1,4 @@
-model_path: yolov8m.pt # Typically pretrained weights (ex. yolov8l.pt)
+model_path: yolov8m.pt # Typically pretrained weights (ex. yolov8m.pt)
 loss_function: # Loss function to use
   use_dfl: true
   use_giou: false
@@ -8,6 +8,7 @@ params: # Parameters for YOLO training
   data: datasets/NAPLab-LiDAR/data.yaml
   name: train
   epochs: 1000
+  time: 7.5
   imgsz: 1024
   hsv_h: 0.0
   hsv_s: 0.0
