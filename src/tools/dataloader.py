@@ -73,6 +73,7 @@ def export_data(architecture: str):
         shutil.copytree(training_folder, 'export/train')
         shutil.copytree(validation_folder, 'export/val')
         shutil.copytree(prediction_folder, 'export/predict')
+        shutil.copytree(configs_folder, 'export/configs')
         shutil.copy(emissions_file, 'export/emissions.csv')
     except FileNotFoundError as e:
         print(f'{e}: Please ensure that the training, validation, and prediction folders exist.')
