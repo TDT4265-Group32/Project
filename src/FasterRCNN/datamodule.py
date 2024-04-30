@@ -80,7 +80,6 @@ class CustomDataModule(pl.LightningDataModule):
 
         return x, y
 
-
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True, collate_fn=self.collate_fcn)
 

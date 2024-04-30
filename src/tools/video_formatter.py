@@ -7,8 +7,9 @@ from tqdm import tqdm
 from moviepy.editor import VideoFileClip
 
 def create_video(src_path: str,
-                 filename: str = "unnamed_video",
-                 extension: str = 'gif',
+                 dst_path: str,
+                 filename: str,
+                 extension: str,
                  fps: int = 5):
     """Create a video from a series of PNGs.
     
@@ -24,6 +25,10 @@ def create_video(src_path: str,
     Exception: If an error is encountered while extracting frame dimensions
     Exception: If an error is encountered while creating video
     """
+    
+    os.makedirs(dst_path, exist_ok=True)
+    full_filename = os.path.join(dst_path, filename)
+    
     images = [img for img in os.listdir(src_path) if img.endswith(".PNG")]
     
     assert len(images) > 0, f'No PNGs found in {src_path}'
@@ -47,7 +52,7 @@ def create_video(src_path: str,
         case _:
             raise ValueError(f'Unsupported extension: {extension}')
 
-    video = cv2.VideoWriter(f'{filename}.mp4', fourcc, fps, (width, height))
+    video = cv2.VideoWriter(f'{full_filename}.mp4', fourcc, fps, (width, height))
 
     try:
         for image in tqdm(images, desc=f'Creating video'):
@@ -56,9 +61,9 @@ def create_video(src_path: str,
         raise Exception(f'Encountered error: {e} while creating video.')
 
     video.release()
-    print(f'Video created at: {filename}.mp4')
+    print(f'Video created at: {full_filename}.mp4')
     
     if extension == 'gif':
-        clip = VideoFileClip(f'{filename}.mp4')
-        clip.write_gif(f'{filename}.gif')
-        print(f'GIF created at: {filename}.gif')
+        clip = VideoFileClip(f'{full_filename}.mp4')
+        clip.write_gif(f'{full_filename}.gif')
+        print(f'GIF created at: {full_filename}.gif')

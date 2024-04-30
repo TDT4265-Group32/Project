@@ -1,0 +1,4 @@
+model_path: runs/detect/train/weights/best.pt
+params:
+    format: 'onnx'
+    imgsz: 1024
