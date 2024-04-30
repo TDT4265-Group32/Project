@@ -9,7 +9,7 @@ from math import ceil
 import torch
 import lightning.pytorch as pl
 import munch
-import lightning.pytorch.loggers as WandbLogger
+from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pathlib import Path
 #########################
