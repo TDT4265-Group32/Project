@@ -1,5 +1,24 @@
 # Object Detection with LiDAR Data from Trondheim
 
+## Table of Contents
+
+- [About the Project](#about-the-project)
+- [About the Dataset](#about-the-dataset)
+- [Configuration](#configuration)
+  - [YOLOv8](#yolov8)
+    - [Train](#train)
+    - [Val](#val)
+    - [Pred](#pred)
+    - [Export](#export)
+  - [Faster R-CNN](#faster-r-cnn)
+- [Running the Code](#running-the-code)
+- [Useful tools](#useful-tools)
+  - [Tensorboard](#tensorboard)
+    - [Port Forwarding](#port-forwarding)
+    - [In VSCode](#in-vscode)
+    - [In CLI](#in-cli)
+  - [Running the Training in the Background](#running-the-training-in-the-background)
+
 ## About the Project
 
 This is a project for the course [TDT4265 - Computer Vision and Deep Learning](https://www.ntnu.edu/studies/courses/TDT4265#tab=omEmnet) at NTNU, Trondheim by Christian Le and Aleksander Klund.
