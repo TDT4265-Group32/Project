@@ -70,12 +70,24 @@ class CustomDataModule(pl.LightningDataModule):
 
         self.train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=self.get_transforms("train"))
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
-    
+
+    def collate_fcn(self, batch):
+
+        x = []
+        y = []
+
+        for i in range(len(batch)):
+            x.append([batch[i][0]])
+            y.append(batch[i][1])
+
+        return x, y
+
+
     def train_dataloader(self):
-        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True, collate_fn=lambda x: x)
+        return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=True, collate_fn=self.collate_fcn)
 
     def val_dataloader(self):
-        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=lambda x: x)
+        return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=self.collate_fcn)
     
     def get_transforms(self, split):
         mean = [0.4696, 0.4696, 0.4696]

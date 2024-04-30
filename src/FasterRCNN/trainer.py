@@ -3,7 +3,6 @@ from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, Learning
 from lightning.pytorch.loggers import WandbLogger
 import torch
 from torch import nn
-from torch.utils.data._utils.collate import default_collate
 from torchvision.models.detection import fasterrcnn_resnet50_fpn
 from torchmetrics import Accuracy
 import munch
@@ -43,12 +42,11 @@ class FasterRCNN(pl.LightningModule):
         return self.model(x, y)
 
     def training_step(self, batch, batch_idx):
-        x = []
-        y = []
+        x, y = batch
 
-        for idx, pack in enumerate(batch):
-            x.append(pack[0])
-            y.append(pack[1])
+        x = x[batch_idx]
+        y = y[batch_idx]
+
 
         y_hat = self.forward(x, y)
         loss = self.loss_fn(y_hat, y)
