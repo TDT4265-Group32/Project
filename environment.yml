@@ -27,3 +27,5 @@ dependencies:
     - munch
     - wandb
     - moviepy
+    - lightning
+    - pyyaml
