@@ -14,14 +14,15 @@ from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, Mode
 from pathlib import Path
 #########################
 
-from FasterRCNN.trainer import FasterRCNN, CustomDataModule
+from FasterRCNN.trainer import FasterRCNN
+from FasterRCNN.datamodule import CustomDataModule
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
 from tools.data_partitioner import partition_dataset
 from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = args.arch
+    ARCHITECTURE = 'FasterRCNN' ##args.arch
     MODE = args.mode
     extract_dataset()
 

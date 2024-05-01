@@ -25,7 +25,8 @@ class NAPLabLiDAR(Dataset):
         
         # Load annotations from YOLO format text file
         with open(annotation_path, 'r') as file:
-            annotations = []
+            boxes = []
+            labels = []
             for line in file:
                 # Parse annotation line
                 parts = line.strip().split(' ')
@@ -38,16 +39,24 @@ class NAPLabLiDAR(Dataset):
                 x_max = (x_center + width / 2)
                 y_max = (y_center + height / 2)
                 
-                annotations.append({
-                    'boxes': torch.as_tensor([x_min, y_min, x_max, y_max], dtype=torch.float32).unsqueeze(0),
-                    'labels': torch.as_tensor(class_label).unsqueeze(0),
-                })
+                boxes.append([x_min, y_min, x_max, y_max])
+                labels.append(class_label)
+            
+        # Convert to tensors
+        boxes = torch.as_tensor(boxes, dtype=torch.float32)
+        labels = torch.as_tensor(labels, dtype=torch.int64)
+
+        # Prepare targets
+        targets = {
+            'boxes': boxes,
+            'labels': labels
+        }
 
         # Apply transformations
         if self.transform:
-            img, annotations = self.transform(img, annotations)
+            img, targets = self.transform(img, targets)
         
-        return img, annotations
+        return img, targets
 
 class CustomDataModule(pl.LightningDataModule):
     def __init__(self, batch_size=32, num_workers=4):
@@ -70,12 +79,11 @@ class CustomDataModule(pl.LightningDataModule):
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
 
     def collate_fcn(self, batch):
-
         x = []
         y = []
 
         for i in range(len(batch)):
-            x.append([batch[i][0]])
+            x.append(batch[i][0])
             y.append(batch[i][1])
 
         return x, y

@@ -24,7 +24,7 @@ class FasterRCNN(pl.LightningModule):
         # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
         # self.model.roi_heads.box_predictor = torch.nn.Linear(in_features, num_classes)
 
-        self.acc_fn = Accuracy(task="multiclass", num_classes=self.config.num_classes)
+        # self.acc_fn = Accuracy(task="multiclass", num_classes=self.config.num_classes)
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
@@ -37,26 +37,27 @@ class FasterRCNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
 
-        x = x[batch_idx]
-        y = y[batch_idx]
+        # x = x[batch_idx]
+        # y = y[batch_idx]
 
         y_hat = self.forward(x, y)
+        loss = y_hat
 
-        # Calculate GIoU loss
-        losses = []
-        for pred_boxes, gt_boxes in zip(y_hat['boxes'], y['boxes']):
-            loss = self.giou_loss(pred_boxes, gt_boxes)
-            losses.append(loss)
+        # # Calculate GIoU loss
+        # losses = []
+        # for pred_boxes, gt_boxes in zip(y_hat['boxes'], y['boxes']):
+        #     loss = self.giou_loss(pred_boxes, gt_boxes)
+        #     losses.append(loss)
         
-        # Compute average loss for the batch
-        loss = torch.mean(torch.stack(losses))
+        # # Compute average loss for the batch
+        # loss = torch.mean(torch.stack(losses))
         
         # Log loss and accuracy
-        acc = self.acc_fn(y_hat, y)
-        self.log_dict({
-            "train/loss": loss,
-            "train/acc": acc
-        },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
+        # acc = self.acc_fn(y_hat, y)
+        # self.log_dict({
+        #     "train/loss": loss,
+        #     "train/acc": acc
+        # },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
         
         return loss
     
