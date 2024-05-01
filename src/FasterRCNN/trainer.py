@@ -4,10 +4,10 @@ import lightning.pytorch as pl
 import torch
 #from torch import nn
 from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
-from torchmetrics import Accuracy
+from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from torchvision.ops import box_iou
 
-#from torchvision.ops import generalized_box_iou, giou_loss
+from torchvision.ops import generalized_box_iou, giou_loss
 
 #from torch.utils.data import DataLoader
 #from torchvision.transforms import functional as F
@@ -19,12 +19,16 @@ class CustomFasterRCNN(pl.LightningModule):
         super().__init__()
         self.config = config
 
-        self.model = fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT)
+        # TODO: Fix num_classes
+
+        # Define the model
+        weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT if config.use_pretrained_weights else None
+        self.model = fasterrcnn_resnet50_fpn(weights=weights)
 
         # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
         # self.model.roi_heads.box_predictor = torch.nn.Linear(in_features, num_classes)
 
-        # self.acc_fn = Accuracy(task="multiclass", num_classes=self.config.num_classes)
+        self.acc_fn = MeanAveragePrecision()
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
@@ -32,7 +36,7 @@ class CustomFasterRCNN(pl.LightningModule):
         return {
             "optimizer": optimizer,
             "lr_scheduler": lr_scheduler,
-            "monitor": "Validation_mAP",
+            #"monitor": "Validation_mAP",
         }
 
     def forward(self, x, y=None):
@@ -72,7 +76,7 @@ class CustomFasterRCNN(pl.LightningModule):
         x, y = batch
         y_hat = self.forward(x)
         acc = self.acc_fn(y_hat, y)
-        loss = self.loss_fn(y_hat, y)
+        loss = giou_loss(y_hat, y)
         self.log_dict({
             "val/loss":loss,
             "val/acc": acc
@@ -86,20 +90,3 @@ class CustomFasterRCNN(pl.LightningModule):
             "test/acc": acc,
         },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
 
-    def giou_loss(self, pred_box, gt_box):
-        
-        # Convert boxes from (x, y, w, h) to (x1, y1, x2, y2)
-        pred_box = torch.stack([pred_box[:, 0], pred_box[:, 1], pred_box[:, 0] + pred_box[:, 2], pred_box[:, 1] + pred_box[:, 3]], dim=1)
-        gt_box = torch.stack([gt_box[:, 0], gt_box[:, 1], gt_box[:, 0] + gt_box[:, 2], gt_box[:, 1] + gt_box[:, 3]], dim=1)
-        
-        iou = box_iou(pred_box, gt_box)
-        
-        enclosing_x1 = torch.min(pred_box[:, 0], gt_box[:, 0])
-        enclosing_y1 = torch.min(pred_box[:, 1], gt_box[:, 1])
-        enclosing_x2 = torch.max(pred_box[:, 2], gt_box[:, 2])
-        enclosing_y2 = torch.max(pred_box[:, 3], gt_box[:, 3])
-
-        enclosing_area = (enclosing_x2 - enclosing_x1) * (enclosing_y2 - enclosing_y1)
-        giou = iou - (enclosing_area - iou) / enclosing_area
-        
-        return 1 - giou
