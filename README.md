@@ -27,7 +27,7 @@ This repository contains the code for object detection on LiDAR data from the NA
 
 ## About the Dataset
 
-The dataset contains 19 clips of LiDAR data, where each clip contains ~10 seconds/~100 frames of data and contains 8 different classes, bounding boxes are annotated for each frame. The dataset is collected by the NAPLab at NTNU.
+The dataset contains 19 clips of LiDAR data, where each clip contains ~100 frames of data and contains 8 different classes, where bounding boxes are annotated for each frame. The dataset is collected by the NAPLab at NTNU.
 The objective of this project is to perform object detection on this dataset.
 
 The test set is chosen to be from frame 201 to and including frame 301, which represents motion from a seperate scene from other parts of the dataset (a good fit for a test set).
