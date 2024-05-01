@@ -2,12 +2,7 @@ import random
 import os
 import argparse
 import yaml
-import atexit
-from math import ceil
 
-from codecarbon import EmissionsTracker
-
-import FasterRCNN
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
 from tools.data_partitioner import partition_dataset
 from tools.video_formatter import create_video
