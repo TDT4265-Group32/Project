@@ -14,7 +14,7 @@ from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, Mode
 from pathlib import Path
 #########################
 
-from FasterRCNN.trainer import FasterRCNN
+from FasterRCNN.trainer import CustomFasterRCNN
 from FasterRCNN.datamodule import CustomDataModule
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
 from tools.data_partitioner import partition_dataset
@@ -117,10 +117,10 @@ def main(args):
             dm = CustomDataModule(batch_size=32, num_workers=4)
             
             if config.checkpoint_path:
-                model = FasterRCNN.load_from_checkpoint(checkpoint_path=config.checkpoint_path, config=config)
+                model = CustomFasterRCNN.load_from_checkpoint(checkpoint_path=config.checkpoint_path, config=config)
                 print("Loading weights from checkpoint...")
             else:
-                model = FasterRCNN(config)
+                model = CustomFasterRCNN(config)
             
             trainer = pl.Trainer(
                 devices=config.devices, 
