@@ -3,7 +3,9 @@ import lightning.pytorch as pl
 #from lightning.pytorch.loggers import WandbLogger
 import torch
 #from torch import nn
-from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights
+from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights 
+from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
+
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from torchvision.ops import box_iou
 
@@ -19,16 +21,14 @@ class CustomFasterRCNN(pl.LightningModule):
         super().__init__()
         self.config = config
 
-        # TODO: Fix num_classes
-
         # Define the model
         weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT if config.use_pretrained_weights else None
-        self.model = fasterrcnn_resnet50_fpn(weights=weights)
+        self.model = fasterrcnn_resnet50_fpn(weights=weights, progress=True)
 
-        # in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        # self.model.roi_heads.box_predictor = torch.nn.Linear(in_features, num_classes)
+        in_features = self.model.roi_heads.box_predictor.cls_score.in_features
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes)
 
-        self.acc_fn = MeanAveragePrecision()
+        self.acc_fn = MeanAveragePrecision(box_format="xyxy", iou_type="bbox")
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
@@ -46,42 +46,27 @@ class CustomFasterRCNN(pl.LightningModule):
     def training_step(self, batch, batch_idx):
         x, y = batch
 
-        # x = x[batch_idx]
-        # y = y[batch_idx]
-
         y_hat = self.forward(x, y)
-        loss = y_hat
 
-        combined_loss = sum(y_hat.values())
+        loss = y_hat['loss_classifier']
 
-
-        # # Calculate GIoU loss
-        # losses = []
-        # for pred_boxes, gt_boxes in zip(y_hat['boxes'], y['boxes']):
-        #     loss = self.giou_loss(pred_boxes, gt_boxes)
-        #     losses.append(loss)
+        self.log_dict({
+            "train_loss": loss,
+            "loss_classifier": y_hat['loss_classifier'],
+            "loss_box_reg": y_hat['loss_box_reg'],
+            "loss_objectness": y_hat['loss_objectness'],
+            "loss_rpn_box_reg": y_hat['loss_rpn_box_reg']
+        },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
         
-        # # Compute average loss for the batch
-        # loss = torch.mean(torch.stack(losses))
-        
-        # Log loss and accuracy
-        # acc = self.acc_fn(y_hat, y)
-        # self.log_dict({
-        #     "train/loss": loss,
-        #     "train/acc": acc
-        # },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
-        
-        return combined_loss
+        return loss
     
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
         acc = self.acc_fn(y_hat, y)
-        loss = giou_loss(y_hat, y)
-        self.log('Validation_mAP', acc, on_step=False, on_epoch=True, prog_bar=True, logger=True)
+
         self.log_dict({
-            "val/loss": loss,
-            "val/acc": acc
+            "val_acc": acc['map_50']
         }, on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
     
     def test_step(self, batch, batch_idx):
@@ -89,6 +74,6 @@ class CustomFasterRCNN(pl.LightningModule):
         y_hat = self.forward(x)
         acc = self.acc_fn(y_hat, y)
         self.log_dict({
-            "test/acc": acc,
+            "test_acc": acc['map_50'],
         },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
 

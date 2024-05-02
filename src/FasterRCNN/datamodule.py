@@ -107,21 +107,20 @@ class CustomDataModule(pl.LightningDataModule):
             return T.Compose([
                 T.Resize((1024, 1024)),
                 *shared_transforms,
-                T.RandomCrop(32, padding=4, padding_mode='reflect'), 
+                # T.RandomCrop(32, padding=4, padding_mode='reflect'), 
                 T.RandomHorizontalFlip(),
-                T.RandomRotation(30),
-                T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
+                # T.RandomRotation(30),
+                # T.RandomAffine(degrees=0, translate=(0.1, 0.1)),
                 T.ColorJitter(brightness=0.2, contrast=0.2, saturation=0.0, hue=0.0),
                 T.RandomErasing(p=0.3, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False),
-                T.Resize((1024, 1024)),  # Ensure all images are the same size
             ])
             
         elif split == "val" or split == "test":
             return T.Compose([
                 T.Resize((1024, 1024)),
                 *shared_transforms,
-                T.Resize((1024, 1024)),  # Ensure all images are the same size
             ])
+
 
 # # Example usage:
 # train_dataset = CustomDataset(train_img_paths, train_annotations, transform=train_transform)

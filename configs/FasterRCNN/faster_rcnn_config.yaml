@@ -5,14 +5,14 @@ max_epochs: 100
 batch_size: 128
 
 in_channels: 3
-num_classes: 9
+num_classes: 8
 use_pretrained_weights: true
 
 test_model: false
 checkpoint_path: #checkpoints/FasterRCNN/
 early_stopping_patience: 10
 num_workers: 16
-check_val_every_n_epoch: 3
+check_val_every_n_epoch: 1
 devices: auto
 enable_progress_bar: true
 
@@ -20,7 +20,7 @@ wandb_project: NAPLab-LiDAR
 wandb_experiment_name: FasterRCNN
 
 train_split_ratio: 0.8
-data_root: ./data
+data_root: ./datasets
 checkpoint_folder: ./checkpoints/FasterRCNN/
 
 
