@@ -2,20 +2,17 @@ import random
 import os
 import argparse
 import yaml
-import atexit
-from math import ceil
 
-### TEMPORARY IMPORTS ###
 import torch
 import lightning.pytorch as pl
 import munch
 from lightning.pytorch.loggers import WandbLogger
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pathlib import Path
-#########################
 
 from FasterRCNN.trainer import CustomFasterRCNN
 from FasterRCNN.datamodule import CustomDataModule
+
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
 from tools.data_partitioner import partition_dataset
 from tools.video_formatter import create_video

@@ -1,36 +1,108 @@
 # Object Detection with LiDAR Data from Trondheim
 
-## Introduction
+## Table of Contents
+
+- [About the Project](#about-the-project)
+- [About the Dataset](#about-the-dataset)
+- [Configuration](#configuration)
+  - [YOLOv8](#yolov8)
+    - [Train](#train)
+    - [Val](#val)
+    - [Pred](#pred)
+    - [Export](#export)
+  - [Faster R-CNN](#faster-r-cnn)
+- [Running the Code](#running-the-code)
+- [Useful tools](#useful-tools)
+  - [Tensorboard](#tensorboard)
+    - [Port Forwarding](#port-forwarding)
+    - [In VSCode](#in-vscode)
+    - [In CLI](#in-cli)
+  - [Running the Training in the Background](#running-the-training-in-the-background)
+
+## About the Project
 
 This is a project for the course [TDT4265 - Computer Vision and Deep Learning](https://www.ntnu.edu/studies/courses/TDT4265#tab=omEmnet) at NTNU, Trondheim by Christian Le and Aleksander Klund.
 
-This repository contains the code for object detection on LiDAR data from the NAPLab at NTNU. The project is divided into two parts, where the first part is using YOLOv8 and the second part is using Faster R-CNN.
+This repository contains the code for object detection on LiDAR data from the NAPLab at NTNU. The project is divided into two main modules, each using **YOLOv8** and **Faster R-CNN**.
 
-## Project Outline
+## About the Dataset
 
-The objective of this project is to perform object detection for 8 classes on a LiDAR dataset collected by the NAPLab at NTNU.
+The dataset contains 19 clips of LiDAR data, where each clip contains ~100 frames of data and contains 8 different classes, where bounding boxes are annotated for each frame. The dataset is collected by the NAPLab at NTNU.
+The objective of this project is to perform object detection on this dataset.
 
-Specific for our project, we use two different architectures:
-
-1. YOLOv8
-2. Faster R-CNN
+The test set is chosen to be from frame 201 to and including frame 301, which represents motion from a seperate scene from other parts of the dataset (a good fit for a test set).
+All other remaining images are in the [datasets/NAPLab-LiDAR/images](datasets/NAPLab-LiDAR/images/) folder which is free to be partitioned into "train" and "val" folders through functions in [src/tools/data_partitioner.py](src/tools/data_partitioner.py).
 
 **NOTE**: The dataset themselves cannot be found in this repository, but within the devices used to train the models as redistribution of the dataset is prohibited.
 
-## Using YOLOv8
+## Configuration
 
-The scripts can be run using the CLI,
+Before running the code, the configuration files need to be set up. The configuration files are in YAML format and contain the parameters for running the different modes of each architecture. The configuration files are located in the [configs/](configs/) folder.
+
+### YOLOv8
+
+The configuration files for the YOLOv8 model can be found in [configs/YOLOv8/](configs/YOLOv8). The configuration files are in YAML format and contain the parameters for training, validation, prediction and exporting.
+
+The **"params"** section in each .yaml file needs to follow the standard format of YOLOv8 train, val and pred parameters. <u>[They can be found here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml)</u>. Unspecified parameters will be set to default values. Other fields are specific for this project.
+
+#### [Train](configs/YOLOv8/train.yaml)
+
+* **"model_path"**: Chosen model for the training. Usually the pretrained [yolov8m.pt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py#L37-L41) is used.
+* **"loss_function"**: Contains booleans to indicate which loss functions to be used.
+
+**NOTE**: Results of training are saved in "runs/detect/trainX", where "X" is specified in the terminal upon starting and ending training, where highest X is usually the most recent run. This can be changed by specifying "project" and "name" in "params".
+
+#### [Val](configs/YOLOv8/val.yaml)
+
+* **"model_path"**: Path to the model to be validated.
+
+**NOTE**: Validation data are saved in "runs/detect/valX", where "X" follows the same logic as in training. This can be changed by specifying "project" and "name" in "params".
+
+**NOTE**: The model is validated on the test set, which is specified in "data" in "params".
+
+#### [Pred](configs/YOLOv8/pred.yaml)
+
+* **"model_path"**: Path to the model to be used for prediction.
+* **"video.create_video"**: Boolean to indicate whether to create a video from the predictions.
+* **"video.path"**: Path to save the video.
+* **"video.filename"**: Filename of the video.
+* **"video.fps"**: Frames per second of the video.
+* **"video.extension"**: Extension of the video, e.g. ".mp4, gif, etc.".
+
+**NOTE**: Prediction images are by default saved in "results/nameOfArchitecture".
+
+#### [Export](configs/YOLOv8/export.yaml)
+
+* **"model_path"**: Path to the model to be exported.
+
+**NOTE**: This function also attempts to export training, validation, prediction, configuration and emissions.csv to the [export](export/) folder (appears after running the export mode).
+
+### Faster R-CNN
+
+The configuration files for the Faster R-CNN model can be found in [configs/FasterRCNN/](configs/FasterRCNN). The configuration files are in YAML format and contain the parameters for training, validation, prediction and exporting.
+
+**WORK IN PROGRESS**
+
+## Running the Code
+
+The scripts are run using the CLI,
 
 ```bash
-$ python src/YOLOv8/main.py --mode <(str/mode)required> --dataset <(str/name)optional>
+$ python src/main.py --arch <str(required)> --mode <str(optional)> --model <str(optional)>
 ```
 
-Currently, there are three different modes:
-* train
-* val
-* pred
+Explanation of the arguments:
+* **--arch**: The architecture to be used. Can be "YOLOv8" or "FasterRCNN".
+* **--mode**: The mode to be run. Can be "train", "val", "pred" and "export". If not specified, the script will run all modes.
+* **--model**: Path to the model to be used. If not specified, the script will use models specified in the configuration files.
 
-The dataset specifies which dataset they will run for. More information of configurations can be found [[here]](#configuration).
+**TIP**: Often when these functions are performed on a remote machine, the export function is very useful to collect the results and models in one place, which can then be transferred by doing the following on the local machine,
+
+```bash
+$ scp -r <user>@<remote_address>:<path_to_export_folder> <local_path>
+```
+
+## Useful tools
 
 ### Tensorboard
 
@@ -49,43 +121,17 @@ Here, it is assumed that the Tensorboard is located in "localhost:<port>" on the
 
 Open the **command line** in VSCode (Ctrl + Shift + P) and type **"Python: Open Tensorboard"**. This will open a new tab in the VSCode where the tensorboard can be accessed.
 
-### Train, Validation and Test set
+#### In CLI
 
-* Test set is chosen to be from frame 201 to frame 301 ("edge" frames are included), which represents motion from a seperate scene from other parts of the dataset (a good fit for a test set).
-* All other remaining images are in the "datasets/NAPLab-LiDAR/images" folder which is free to be partitioned into "train" and "val" folders through functions in [partition_dataset.py](src/YOLOv8/utils/partition_dataset.py).
+To start tensorboard, run the following command in the terminal,
 
-### Configuration
+```bash
+$ tensorboard --logdir <path_to_tensorboard_logs>
+```
 
-The configuration files for the YOLOv8 model can be found in [configs/YOLOv8/NAPLab-LiDAR/](configs/YOLOv8/NAPLab-LiDAR/). The configuration files are in JSON format and contain the parameters for training, validation and prediction.
+The terminal will show the link to the tensorboard, which can be accessed in the browser.
 
-The **"params"** section in each .json file needs to follow the standard format of YOLOv8 train, val and pred parameters. They can be found [here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml). Unspecified parameters will be set to default values. Other fields are specific for this project.
-
-#### [Train](configs/YOLOv8/NAPLab-LiDAR/train.json)
-
-* **"pretrained_model"**: Chosen pretrained model for the training. Usually "yolov8m.pt" is used.
-* **"loss_function"**: Contains booleans to indicate which loss functions to be used.
-* **partition.mode**: The mode of partitioning the dataset. Can be "video" or "images", where "video" partitions the 18 clips, while "images" partition for all images independently.
-* **partition.num_shuffles**: Number of times the dataset is shuffled, thus training is performed the same number of times.
-Epochs per training is given by ceil(epochs / num_shuffles).
-
-**NOTE: Results of training are saved in "runs/detect/trainX", where "X" is specified in the terminal upon starting and ending training.**
-
-#### [Val](configs/YOLOv8/NAPLab-LiDAR/val.json)
-
-* **"model_path"**: Path to the model to be validated.
-
-**NOTE: Validation data is vaed in "runs/detect/valX", where "X" is specified in the terminal upon starting and ending validation.**
-
-#### [Pred](configs/YOLOv8/NAPLab-LiDAR/pred.json)
-
-* **"model_path"**: Path to the model to be used for prediction.
-* **"video.create_video"**: Boolean to indicate whether to create a video from the predictions.
-* **"video.save_path"**: Path to save the video.
-* **"video.filename"**: Filename of the video.
-
-**NOTE: Prediction images are by default saved in "results/NameOfDataset".**
-
-## Running code in the background
+## Running the Training in the Background
 
 To run the training in the background and avoid interruptions due to possible issues with local machine, it is recommended to use TMUX. To start a new session, run
 
