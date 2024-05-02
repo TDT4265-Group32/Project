@@ -7,9 +7,9 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_Res
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
-from torchvision.ops import box_iou
+#from torchvision.ops import box_iou
 
-from torchvision.ops import generalized_box_iou, giou_loss
+#from torchvision.ops import generalized_box_iou, giou_loss
 
 #from torch.utils.data import DataLoader
 #from torchvision.transforms import functional as F
@@ -17,16 +17,16 @@ from torchvision.ops import generalized_box_iou, giou_loss
 #from datamodule import CustomDataModule, NAPLabLiDAR
 
 class CustomFasterRCNN(pl.LightningModule):
-    def __init__(self, config):
+    def __init__(self, config: dict):
         super().__init__()
         self.config = config
 
         # Define the model
-        weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT if config.use_pretrained_weights else None
+        weights = FasterRCNN_ResNet50_FPN_Weights.DEFAULT if self.config['use_pretrained_weights'] else None
         self.model = fasterrcnn_resnet50_fpn(weights=weights, progress=True)
 
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes+1)
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, self.config['num_classes']+1)
 
         # Freeze the parameters of the RPN
         for param in self.model.rpn.parameters():
@@ -35,7 +35,7 @@ class CustomFasterRCNN(pl.LightningModule):
         self.mAP = MeanAveragePrecision(box_format="xyxy", iou_type="bbox")
     
     def configure_optimizers(self):
-        optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
+        optimizer = torch.optim.SGD(self.parameters(), lr=self.config['max_lr'], momentum=self.config['momentum'], weight_decay=self.config['weight_decay'])
         lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80,200], gamma=0.1)
         #lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
         return {

@@ -6,7 +6,7 @@ import yaml
 import torch
 import lightning.pytorch as pl
 import munch
-from lightning.pytorch.loggers import WandbLogger
+from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pathlib import Path
 
@@ -73,10 +73,7 @@ def main(args):
                     if CONFIGS[PRED_YAML]['video']['create_video']:
                         # Create video from sequence of PNGs
                         create_video(os.path.join('results', ARCHITECTURE),
-                                     dst_path=CONFIGS[PRED_YAML]['video']['path'],
-                                     filename=CONFIGS[PRED_YAML]['video']['filename'],
-                                     extension=CONFIGS[PRED_YAML]['video']['extension'],
-                                     fps=CONFIGS[PRED_YAML]['video']['fps'])
+                                     **CONFIG_YAML['video'])
 
                     model.export(CONFIGS[EXPORT_YAML]['params'])
                     export_data(ARCHITECTURE)
@@ -96,52 +93,74 @@ def main(args):
                     if CONFIG_YAML['video']['create_video']:
                         # Create video from sequence of PNGs
                         create_video(os.path.join('results', ARCHITECTURE),
-                                     dst_path=CONFIG_YAML['video']['path'],
-                                     filename=CONFIG_YAML['video']['filename'],
-                                     extension=CONFIG_YAML['video']['extension'],
-                                     fps=CONFIG_YAML['video']['fps'])
+                                     **CONFIG_YAML['video'])
                 case 'export':
                     # Export the model to a specified format
                     model.export(PARAMS)
                     export_data(ARCHITECTURE)
 
         case 'FasterRCNN':
-            torch.set_float32_matmul_precision('medium')
-            config = munch.munchify(yaml.load(open("configs/FasterRCNN/faster_rcnn_config.yaml"), Loader=yaml.FullLoader))
-
-            assert MODE in ['train', 'val', 'pred', 'all'], 'Invalid mode. Please choose from: train, val, pred'
-
-            pl.seed_everything(42)
-            dm = CustomDataModule(batch_size=32, num_workers=4)
             
-            if config.checkpoint_path:
-                model = CustomFasterRCNN.load_from_checkpoint(checkpoint_path=config.checkpoint_path, config=config)
-                print("Loading weights from checkpoint...")
-            else:
-                model = CustomFasterRCNN(config)
+            YAML_PATH = os.path.join('configs', 'FasterRCNN', 'faster_rcnn_config.yaml')
+            with open(YAML_PATH) as yaml_config_file:
+                CONFIG_YAML = yaml.safe_load(yaml_config_file)
             
-            trainer = pl.Trainer(
-                devices=config.devices, 
-                max_epochs=config.max_epochs, 
-                check_val_every_n_epoch=config.check_val_every_n_epoch,
-                enable_progress_bar=config.enable_progress_bar,
-                precision="bf16-mixed",
-                # deterministic=True,
-                logger=WandbLogger(project=config.wandb_project, name=config.wandb_experiment_name, config=config),
-                callbacks=[
-                    EarlyStopping(monitor="val_acc", patience=config.early_stopping_patience, mode="max", verbose=True),
-                    LearningRateMonitor(logging_interval="step"),
-                    ModelCheckpoint(dirpath=Path(config.checkpoint_folder, config.wandb_project, config.wandb_experiment_name), 
-                                    filename='best_model:epoch={epoch:02d}-val_acc={val_acc:.4f}',
-                                    auto_insert_metric_name=False,
-                                    save_weights_only=True,
-                                    save_top_k=1),
-                ])
+            
+            MODULE_CONFIG = CONFIG_YAML['module_config']
+            CHECKPOINT_PATH = CONFIG_YAML['checkpoint_path']
+            TEST_MODEL = CONFIG_YAML['test_model']
 
-            if not config.test_model:
-                trainer.fit(model, train_dataloaders=dm.train_dataloader(), val_dataloaders=dm.val_dataloader())
+            CUSTOMDATAMODULE = CONFIG_YAML['custom_data_module']
+            
+            TRAINER_CONFIG = CONFIG_YAML['trainer']
+            LOGGER = CONFIG_YAML['logger']
+            CALLBACKS = CONFIG_YAML['callbacks']
+            
+            match MODE:
+                case 'all':
+                    # Set the precision for the model
+                    torch.set_float32_matmul_precision('medium')
+                    pl.seed_everything(42)
 
-            trainer.test(model, dataloaders=dm.train_dataloader())
+                    dm = CustomDataModule(**CUSTOMDATAMODULE)
+                    
+                    if CHECKPOINT_PATH:
+                        model = CustomFasterRCNN.load_from_checkpoint(CHECKPOINT_PATH, MODULE_CONFIG)
+                        print("Loading weights from checkpoint...")
+                    else:
+                        model = CustomFasterRCNN(MODULE_CONFIG)
+
+                    if LOGGER['type'].lower() == 'wandb':
+                        logger = WandbLogger(project=LOGGER['project'],
+                                             name=LOGGER['name'])
+                    elif LOGGER['type'].lower() == 'tensorboard':
+                        logger = TensorBoardLogger(save_dir=LOGGER['save_dir'],
+                                                   name=LOGGER['name'])
+                    else:
+                        raise ValueError("Invalid logger type. Please choose from: Wandb, Tensorboard")
+
+                    trainer = pl.Trainer(
+                        **TRAINER_CONFIG,
+                        logger=logger,
+                        callbacks=[
+                            EarlyStopping(**CALLBACKS['early_stopping']),
+                            LearningRateMonitor(**CALLBACKS['learning_rate_monitor']),
+                            ModelCheckpoint(**CALLBACKS['model_checkpoint']),
+                        ])
+
+                    if not TEST_MODEL:
+                        trainer.fit(model, train_dataloaders=dm.train_dataloader(), val_dataloaders=dm.val_dataloader())
+
+                    trainer.test(model, dataloaders=dm.train_dataloader())
+
+                case 'train':
+                    raise NotImplementedError("Training FasterRCNN model from scratch is not supported.")
+                case 'val':
+                    raise NotImplementedError("Validation of FasterRCNN model is not supported.")
+                case 'pred':
+                    raise NotImplementedError("Prediction using FasterRCNN model is not supported.")
+                case 'export':
+                    raise NotImplementedError("Exporting FasterRCNN model is not supported.")
 
 
 if __name__ == "__main__":
