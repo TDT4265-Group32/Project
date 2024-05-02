@@ -28,11 +28,15 @@ class CustomFasterRCNN(pl.LightningModule):
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
         self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes)
 
-        self.acc_fn = MeanAveragePrecision(box_format="xyxy", iou_type="bbox")
+        # Freeze the parameters of the RPN
+        for param in self.model.rpn.parameters():
+            param.requires_grad = False
+
+        self.acc_fn = MeanAveragePrecision(box_format="xyxy", iou_type="bbox", iou_thresholds=[0.2])
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
-        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[30,80], gamma=0.1)
+        lr_scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[80,200], gamma=0.1)
         #lr_scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='min', factor=0.1, patience=10, verbose=True)
         return {
             "optimizer": optimizer,
@@ -48,7 +52,7 @@ class CustomFasterRCNN(pl.LightningModule):
 
         y_hat = self.forward(x, y)
 
-        loss = y_hat['loss_classifier']
+        loss = y_hat['loss_classifier'] + y_hat['loss_box_reg'] + y_hat['loss_objectness'] + y_hat['loss_rpn_box_reg']
 
         self.log_dict({
             "train_loss": loss,
@@ -66,7 +70,7 @@ class CustomFasterRCNN(pl.LightningModule):
         acc = self.acc_fn(y_hat, y)
 
         self.log_dict({
-            "val_acc": acc['map_50']
+            "val_acc": acc['map']
         }, on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
     
     def test_step(self, batch, batch_idx):
@@ -74,6 +78,6 @@ class CustomFasterRCNN(pl.LightningModule):
         y_hat = self.forward(x)
         acc = self.acc_fn(y_hat, y)
         self.log_dict({
-            "test_acc": acc['map_50'],
+            "test_acc": acc['map'],
         },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
 
