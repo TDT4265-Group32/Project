@@ -26,7 +26,7 @@ class CustomFasterRCNN(pl.LightningModule):
         self.model = fasterrcnn_resnet50_fpn(weights=weights, progress=True)
 
         in_features = self.model.roi_heads.box_predictor.cls_score.in_features
-        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes)
+        self.model.roi_heads.box_predictor = FastRCNNPredictor(in_features, config.num_classes+1)
 
         # Freeze the parameters of the RPN
         for param in self.model.rpn.parameters():
