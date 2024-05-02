@@ -19,8 +19,11 @@ from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = 'FasterRCNN' ##args.arch
+    ARCHITECTURE = 'FasterRCNN' # Only dataset used in the project
     MODE = args.mode
+    MODEL_PATH = args.model_path
+
+    # Extract the dataset and partition it into training and validation sets
     extract_dataset()
     partition_dataset()
 
@@ -35,18 +38,15 @@ def main(args):
                 YAML_PATH = os.path.join('configs', 'YOLOv8', 'train.yaml')
             else:
                 YAML_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
-
             with open(YAML_PATH) as yaml_config_file:
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
 
             # Check if a model path is provided
-            if args.model_path is not None:
-                MODEL = args.model_path
-            else:
-                MODEL = CONFIG_YAML['model_path']
+            if MODEL_PATH is None:
+                MODEL_PATH = CONFIG_YAML['model_path']
 
             # Load model and parameters
-            model = YOLO(MODEL)
+            model = YOLO(MODEL_PATH)
             PARAMS = CONFIG_YAML['params']
 
             match MODE:

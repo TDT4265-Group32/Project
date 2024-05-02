@@ -20,7 +20,6 @@ dependencies:
     - seaborn>=0.11.0
     - pandas
     - supervision
-    - imageio[ffmpeg]
     - scikit-learn
     - codecarbon
     - pynvml
@@ -30,3 +29,4 @@ dependencies:
     - lightning
     - pyyaml
     - munch
+    - faster-coco-eval
