@@ -15,7 +15,10 @@ from tqdm import tqdm
 class CustomBboxLoss(BboxLoss):
     """Custom bounding box loss class."""
     def __init__(self, reg_max, use_dfl=False):
-        """Use CIoU loss for the bounding box loss."""
+        """
+        Make the bounding box loss class more flexible 
+        by allowing the use of DFL and different IoU methods
+        """
         super().__init__(reg_max, use_dfl)
         self.reg_max = reg_max
         self.use_dfl = use_dfl
@@ -34,6 +37,7 @@ class CustomBboxLoss(BboxLoss):
                         GIoU=self.use_iou_method['giou'])
         loss_iou = 1 - iou
         if self.use_dfl:
+            # NOTE: bbox2dist assumes format (cx, cy, w, h) instead of (x, y, w, h)
             target_ltrb = bbox2dist(anchor_points, target_bboxes, self.reg_max)
             loss_dfl = self._df_loss(pred_dist[fg_mask].view(-1, self.reg_max + 1), target_ltrb[fg_mask]) * weight
             loss_dfl = loss_dfl.sum() / target_scores_sum
@@ -44,26 +48,35 @@ class CustomBboxLoss(BboxLoss):
 
 class CustomYOLO(YOLO):
     """Custom YOLOv8 model."""
-    def __init__(self, cfg='models/pretrained/yolov8m.pt'):
+    def __init__(self,
+                 cfg: str = 'models/pretrained/yolov8m.pt'):
         super().__init__(cfg)
-        # Choose to get better performance by sacrificing speed
-        self.loss = CustomBboxLoss(reg_max=4, use_dfl=True)
+        self.loss = CustomBboxLoss(reg_max=4, use_dfl=False)
 
-    def load(self, weights):
+    def load(self,
+             weights: str):
         """Load the YOLOv8 model.
 
         Args:
         weights (str): Path to the weights file
         """
+        # Load the weights
         super().load(weights)
+
+        # Fuse the model to improve performance
         self.fuse()
     
-    def train(self, train_params, loss_params):
+    def train(self,
+              train_params: dict,
+              loss_params: dict):
         """Train the YOLOv8 model.
         
         Args:
         train_params (dict): Dictionary containing training parameters
         loss_params (dict): Dictionary containing loss parameters
+        
+        Returns:
+        result (dict): Dictionary containing training results
         """
         # Set the DFL and IoU methods
         self.set_dfl(loss_params['use_dfl'])
@@ -85,28 +98,38 @@ class CustomYOLO(YOLO):
 
         return result
 
-    def validate(self, val_params):
+    def validate(self,
+                 val_params: dict):
         """Validate the YOLOv8 model.
         
         Args:
         val_params (dict): Dictionary containing validation parameters
+
+
+        Returns:
+        results (dict): Dictionary containing validation results
         """
-        
+        # Validate the model
         results = super().val(**val_params)
-        
+
         return results
 
     def predict(self,
-                predict_params):
+                predict_params: dict):
         """Predict using the YOLOv8 model.
         Also, save the results if the results_path is provided.
 
         Args:
         predict_params (dict): Dictionary containing prediction parameters
-        """
 
+
+        Returns:
+        results (list): List of PIL images
+        """
+        # Perform prediction
         results = super().predict(**predict_params, device=self.device)
 
+        # Create the results folder if it does not exist
         results_path = os.path.join('results', 'YOLOv8')
         if not os.path.exists(results_path):
             os.makedirs(results_path)
@@ -115,6 +138,7 @@ class CustomYOLO(YOLO):
                 if file.endswith('.PNG'):
                     os.remove(os.path.join(results_path, file))
 
+        # Save the results
         for idx, result in tqdm(enumerate(results), total=len(results), desc=f'Saving result frames'):
             img_path = sorted(glob.glob(os.path.join(predict_params['source'], '*.PNG')))[idx]
             original_image_name = os.path.basename(img_path)
@@ -122,12 +146,15 @@ class CustomYOLO(YOLO):
 
         return results
 
-    def benchmark(self, params):
-        results = super().benchmark(**params)
+    def export(self, params: dict):
+        """Export the YOLOv8 model.
 
-        return results
+        Args:
+            params (dict): Dictionary containing export parameters
 
-    def export(self, params):
+        Returns:
+            results (dict): Dictionary containing the export results
+        """
         results = super().export(**params)
 
         return results
