@@ -70,6 +70,9 @@ class CustomDataModule(pl.LightningDataModule):
         val_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/val/*.PNG")
         val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
+        test_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/test/*.PNG")
+        test_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
+
         assert len(train_img_paths) > 0, "No training images found"
         assert len(val_img_paths) > 0, "No validation images found"
         assert len(train_img_paths) == len(train_annotations), f"Number of images and annotations do not match for train set"
@@ -77,6 +80,7 @@ class CustomDataModule(pl.LightningDataModule):
 
         self.train_dataset = NAPLabLiDAR(train_img_paths, train_annotations, transform=self.get_transforms("train"))
         self.val_dataset = NAPLabLiDAR(val_img_paths, val_annotations, transform=self.get_transforms("val"))
+        self.test_dataset = NAPLabLiDAR(test_img_paths, test_annotations, transform=self.get_transforms("test"))
 
     def collate_fcn(self, batch):
         x = []
@@ -93,6 +97,9 @@ class CustomDataModule(pl.LightningDataModule):
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=self.collate_fcn)
+    
+    def test_dataloader(self):
+        return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers, pin_memory=True, shuffle=False, collate_fn=self.collate_fcn)
     
     def get_transforms(self, split):
         mean = [0.4696, 0.4696, 0.4696]

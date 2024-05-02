@@ -32,7 +32,7 @@ class CustomFasterRCNN(pl.LightningModule):
         for param in self.model.rpn.parameters():
             param.requires_grad = False
 
-        self.acc_fn = MeanAveragePrecision(box_format="xyxy", iou_type="bbox", iou_thresholds=[0.2])
+        self.mAP = MeanAveragePrecision(box_format="xyxy", iou_type="bbox")
     
     def configure_optimizers(self):
         optimizer = torch.optim.SGD(self.parameters(), lr=self.config.max_lr, momentum=self.config.momentum, weight_decay=self.config.weight_decay)
@@ -67,7 +67,8 @@ class CustomFasterRCNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
-        acc = self.acc_fn(y_hat, y)
+        self.mAP.update(y_hat, y)
+        acc = self.mAP.compute()
 
         self.log_dict({
             "val_acc": acc['map']
@@ -76,7 +77,8 @@ class CustomFasterRCNN(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x)
-        acc = self.acc_fn(y_hat, y)
+        self.mAP.update(y_hat, y)
+        acc = self.mAP.compute()
         self.log_dict({
             "test_acc": acc['map'],
         },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)

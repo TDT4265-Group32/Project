@@ -24,7 +24,8 @@ from tools.dataloader import extract_dataset, export_data
 def main(args):
     ARCHITECTURE = 'FasterRCNN' ##args.arch
     MODE = args.mode
-    #extract_dataset()
+    extract_dataset()
+    partition_dataset()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'export', 'all'], 'Invalid mode. Please choose from: train, validate, predict, export'
@@ -67,7 +68,6 @@ def main(args):
                             CONFIGS[key] = yaml.safe_load(yaml_config_file)
 
                     # Perform training, validation, prediction, and export
-                    partition_dataset()
                     model.train(CONFIGS[TRAIN_YAML]['params'], CONFIGS[TRAIN_YAML]['loss_function'])
 
                     model.validate(CONFIGS[VAL_YAML]['params'])
@@ -135,7 +135,7 @@ def main(args):
                     EarlyStopping(monitor="val_acc", patience=config.early_stopping_patience, mode="max", verbose=True),
                     LearningRateMonitor(logging_interval="step"),
                     ModelCheckpoint(dirpath=Path(config.checkpoint_folder, config.wandb_project, config.wandb_experiment_name), 
-                                    filename='best_model:epoch={epoch:02d}-val_acc={val/acc:.4f}',
+                                    filename='best_model:epoch={epoch:02d}-val_acc={val_acc:.4f}',
                                     auto_insert_metric_name=False,
                                     save_weights_only=True,
                                     save_top_k=1),
@@ -144,7 +144,7 @@ def main(args):
             if not config.test_model:
                 trainer.fit(model, train_dataloaders=dm.train_dataloader(), val_dataloaders=dm.val_dataloader())
 
-            trainer.test(model, test_dataloaders=dm.test_dataloader())
+            trainer.test(model, dataloaders=dm.train_dataloader())
 
 
 if __name__ == "__main__":
