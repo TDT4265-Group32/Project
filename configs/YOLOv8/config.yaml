@@ -1,0 +1,36 @@
+train:
+  model_path: yolov8m.pt # Typically pretrained (ex. yolov8m.pt)
+  loss_function: # Modifications to loss func.
+    use_dfl: true
+    use_giou: false
+    use_diou: false
+    use_ciou: true
+  params: # Hyperparams for YOLOv8 training
+    data: datasets/NAPLab-LiDAR/data.yaml
+    name: train
+    time: 12
+    imgsz: 1024
+    hsv_h: 0.0
+    hsv_s: 0.0
+val:
+  model_path: runs/detect/train/weights/best.pt # Path to the trained model
+  params: # Parameters for YOLO prediction
+    data: datasets/NAPLab-LiDAR/data_test.yaml
+    name: val
+    max_det: 300
+pred:
+  model_path: runs/detect/train/weights/best.pt # Path to the trained model
+  params: # Parameters for YOLO prediction
+    source: datasets/NAPLab-LiDAR/images/test
+    show: false
+  video: # Parameters for creating video
+    create_video: true
+    path: results/YOLOv8/videos
+    filename: test
+    fps: 5
+    extension: gif
+export:
+  model_path: runs/detect/train/weights/best.pt
+  params:
+      format: 'onnx'
+      imgsz: 1024

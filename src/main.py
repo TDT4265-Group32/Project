@@ -34,71 +34,57 @@ def main(args):
 
     match ARCHITECTURE:
         case 'YOLOv8':
-            # Load the configuration file
-            if MODE == 'all':
-                # Train model from scratch when all is selected
-                YAML_PATH = os.path.join('configs', 'YOLOv8', 'train.yaml')
-            else:
-                YAML_PATH = os.path.join('configs', 'YOLOv8', MODE + '.yaml')
+            
+            YAML_PATH = os.path.join('configs', 'YOLOv8', 'config.yaml')
             with open(YAML_PATH) as yaml_config_file:
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
 
-            # Check if a model path is provided
-            if MODEL_PATH is None:
-                MODEL_PATH = CONFIG_YAML['model_path']
-
-            # Load model and parameters
-            model = YOLO(MODEL_PATH)
-            PARAMS = CONFIG_YAML['params']
+            TRAIN_CONFIG = CONFIG_YAML['train']
+            VAL_CONFIG = CONFIG_YAML['val']
+            PRED_CONFIG = CONFIG_YAML['pred']
+            EXPORT_CONFIG = CONFIG_YAML['export']
 
             match MODE:
                 case 'all':
-                    # Load all configuration files
-                    TRAIN_YAML = os.path.join('configs', 'YOLOv8', 'train.yaml')
-                    VAL_YAML = os.path.join('configs', 'YOLOv8', 'val.yaml')
-                    PRED_YAML = os.path.join('configs', 'YOLOv8', 'pred.yaml')
-                    EXPORT_YAML = os.path.join('configs', 'YOLOv8', 'export.yaml')
-
-                    CONFIGS = {TRAIN_YAML: None, VAL_YAML: None, PRED_YAML: None, EXPORT_YAML: None}
-                    
-                    for key in CONFIGS:
-
-                        with open(key) as yaml_config_file:
-                            CONFIGS[key] = yaml.safe_load(yaml_config_file)
+                    # Check if a model path is provided
+                    if MODEL_PATH is None:
+                        MODEL_PATH = TRAIN_CONFIG['model_path']
+                    # Load model and parameters
+                    model = YOLO(MODEL_PATH)
 
                     # Perform training, validation, prediction, and export
-                    model.train(CONFIGS[TRAIN_YAML]['params'], CONFIGS[TRAIN_YAML]['loss_function'])
+                    model.train(TRAIN_CONFIG['params'], TRAINER_CONFIG['loss_function'])
 
-                    model.validate(CONFIGS[VAL_YAML]['params'])
+                    model.validate(VAL_CONFIG['params'])
 
-                    model.predict(CONFIGS[PRED_YAML]['params'])
-                    if CONFIGS[PRED_YAML]['video']['create_video']:
+                    model.predict(PRED_CONFIG['params'])
+                    if PRED_CONFIG['video']['create_video']:
                         # Create video from sequence of PNGs
                         create_video(os.path.join('results', ARCHITECTURE),
-                                     **CONFIG_YAML['video'])
+                                     **PRED_CONFIG['video'])
 
-                    model.export(CONFIGS[EXPORT_YAML]['params'])
+                    model.export(EXPORT_CONFIG['params'])
                     export_data(ARCHITECTURE)
 
                 case 'train':
                     # Partition the dataset into random seperate training and validation folders
                     partition_dataset()
-                    model.train(PARAMS, CONFIG_YAML['loss_function'])
+                    model.train(TRAIN_CONFIG['params'], TRAIN_CONFIG['loss_function'])
 
                 case 'val':
                     # Validate the model on the test set
-                    model.validate(val_params=PARAMS)
+                    model.validate(VAL_CONFIG['params'])
 
                 case 'pred':
                     # Perform prediction on the test set
-                    model.predict(PARAMS)
-                    if CONFIG_YAML['video']['create_video']:
+                    model.predict(PRED_CONFIG['params'])
+                    if PRED_CONFIG['video']['create_video']:
                         # Create video from sequence of PNGs
                         create_video(os.path.join('results', ARCHITECTURE),
-                                     **CONFIG_YAML['video'])
+                                     **PRED_CONFIG['video'])
                 case 'export':
                     # Export the model to a specified format
-                    model.export(PARAMS)
+                    model.export(EXPORT_CONFIG['params'])
                     export_data(ARCHITECTURE)
 
         case 'FasterRCNN':
@@ -111,9 +97,7 @@ def main(args):
             MODULE_CONFIG = CONFIG_YAML['module_config']
             CHECKPOINT_PATH = CONFIG_YAML['checkpoint_path']
             TEST_MODEL = CONFIG_YAML['test_model']
-
             CUSTOMDATAMODULE = CONFIG_YAML['custom_data_module']
-            
             TRAINER_CONFIG = CONFIG_YAML['trainer']
             LOGGER = CONFIG_YAML['logger']
             CALLBACKS = CONFIG_YAML['callbacks']
