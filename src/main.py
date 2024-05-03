@@ -145,15 +145,6 @@ def main(args):
 
                     trainer.test(model, dataloaders=dm.train_dataloader())
 
-                case 'train':
-                    raise NotImplementedError("Training FasterRCNN model from scratch is not supported.")
-                case 'val':
-                    raise NotImplementedError("Validation of FasterRCNN model is not supported.")
-                case 'pred':
-                    raise NotImplementedError("Prediction using FasterRCNN model is not supported.")
-                case 'export':
-                    raise NotImplementedError("Exporting FasterRCNN model is not supported.")
-
 
 if __name__ == "__main__":
     # Make results "deterministic"
