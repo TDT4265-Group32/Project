@@ -21,40 +21,23 @@ def extract_dataset():
         if not os.path.exists(target_dir):
             raise FileNotFoundError("Dataset not found on Cybele or Idun. Please check the dataset location and try again.")
         else:
-            print("Dataset already exists in the target directory.")
+            print("Dataset already exists in the target directory, skipping extraction.")
             return
 
-    # Copy all files from source directory to target directory
-    print(f"Copying dataset from '{source_dir}' to '{target_dir}'...")
-    shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
-    print("Dataset copied successfully.")
-    
-    test_img_dir = os.path.join(target_dir, "images", "test")
-    test_lbl_dir = os.path.join(target_dir, "labels", "test")
-    os.makedirs(test_img_dir, exist_ok=True)
-    os.makedirs(test_lbl_dir, exist_ok=True)
-    
+    # Check if images and labels already exist in the target directory
     image_dir = os.path.join(target_dir, "images")
     label_dir = os.path.join(target_dir, "labels")
-    # Move frames 201-301 to the test directory
-    for i in tqdm(range(201, 302), desc="Moving test images and labels"):
-        image_name = f"frame_{i:06d}.PNG"
-        label_name = f"frame_{i:06d}.txt"
-        source_image_path = os.path.join(image_dir, image_name)
-        source_label_path = os.path.join(label_dir, label_name)
-        if os.path.exists(source_image_path) and os.path.exists(source_label_path):
-            try:
-                destination_image_path = os.path.join(test_img_dir, image_name)
-                destination_label_path = os.path.join(test_lbl_dir, label_name)
-                shutil.move(source_image_path, destination_image_path)
-                shutil.move(source_label_path, destination_label_path)
-            except FileNotFoundError as e:
-                if os.path.exists(destination_image_path) and os.path.exists(destination_label_path):
-                    continue
-                else:
-                    raise FileNotFoundError(f"{e}: Please ensure that the test image and label directories exist.")
+    images_exist = all(os.path.exists(os.path.join(image_dir, f"frame_{i:06d}.PNG")) for i in range(1905))
+    labels_exist = all(os.path.exists(os.path.join(label_dir, f"frame_{i:06d}.txt")) for i in range(1905))
 
-    print("Test images and labels moved successfully.")
+    if images_exist and labels_exist:
+        print("Images and labels already exist in the target directory.")
+        return
+    else:
+        # Copy all files from source directory to target directory
+        print(f"Copying dataset from '{source_dir}' to '{target_dir}'...")
+        shutil.copytree(source_dir, target_dir, dirs_exist_ok=True)
+        print("Dataset copied successfully.")
 
 def export_data(architecture: str):
     

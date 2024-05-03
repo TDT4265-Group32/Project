@@ -14,7 +14,7 @@ from FasterRCNN.trainer import CustomFasterRCNN
 from FasterRCNN.datamodule import CustomDataModule
 
 from YOLOv8.CustomYOLO import CustomYOLO as YOLO
-from tools.data_partitioner import partition_dataset
+from tools.data_partitioner import partition_dataset, create_test_dataset
 from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
@@ -25,6 +25,7 @@ def main(args):
 
     # Extract the dataset and partition it into training and validation sets
     extract_dataset()
+    create_test_dataset()
     partition_dataset()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
