@@ -20,7 +20,7 @@ from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = "FasterRCNN" #args.arch # Only dataset used in the project
+    ARCHITECTURE = args.arch 
     MODE = args.mode
     MODEL_PATH = args.model_path
 
@@ -34,16 +34,18 @@ def main(args):
 
     match ARCHITECTURE:
         case 'YOLOv8':
-            
+            # Set the seed for reproducibility
+            random.seed(0)
+            # Load the configuration file
             YAML_PATH = os.path.join('configs', 'YOLOv8', 'config.yaml')
             with open(YAML_PATH) as yaml_config_file:
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
-
+            # Load the configuration parameters
             TRAIN_CONFIG = CONFIG_YAML['train']
             VAL_CONFIG = CONFIG_YAML['val']
             PRED_CONFIG = CONFIG_YAML['pred']
             EXPORT_CONFIG = CONFIG_YAML['export']
-
+            # Select the mode to run the script in
             match MODE:
                 case 'all':
                     # Check if a model path is provided
@@ -53,16 +55,12 @@ def main(args):
                     model = YOLO(MODEL_PATH)
 
                     # Perform training, validation, prediction, and export
-                    model.train(TRAIN_CONFIG['params'], TRAINER_CONFIG['loss_function'])
-
+                    model.train(TRAIN_CONFIG['params'], TRAIN_CONFIG['loss_function'])
                     model.validate(VAL_CONFIG['params'])
-
                     model.predict(PRED_CONFIG['params'])
                     if PRED_CONFIG['video']['create_video']:
-                        # Create video from sequence of PNGs
                         create_video(os.path.join('results', ARCHITECTURE),
                                      **PRED_CONFIG['video'])
-
                     model.export(EXPORT_CONFIG['params'])
                     export_data(ARCHITECTURE)
 
@@ -88,12 +86,11 @@ def main(args):
                     export_data(ARCHITECTURE)
 
         case 'FasterRCNN':
-            
+            # Load the configuration file
             YAML_PATH = os.path.join('configs', 'FasterRCNN', 'faster_rcnn_config.yaml')
             with open(YAML_PATH) as yaml_config_file:
                 CONFIG_YAML = yaml.safe_load(yaml_config_file)
-            
-            
+            # Load the configuration parameters
             MODULE_CONFIG = CONFIG_YAML['module_config']
             CHECKPOINT_PATH = CONFIG_YAML['checkpoint_path']
             TEST_MODEL = CONFIG_YAML['test_model']
@@ -102,20 +99,26 @@ def main(args):
             LOGGER = CONFIG_YAML['logger']
             CALLBACKS = CONFIG_YAML['callbacks']
             
+            if MODE != 'all':
+                Warning("'all' is the only mode supported for FasterRCNN")
+                MODE = 'all'
+
+            # Select the mode to run the script in
             match MODE:
                 case 'all':
                     # Set the precision for the model
                     torch.set_float32_matmul_precision('medium')
+                    # Set the seed for reproducibility
                     pl.seed_everything(42)
-
+                    # Load the custom data module
                     dm = CustomDataModule(**CUSTOMDATAMODULE)
-                    
+                    # Load the model
                     if CHECKPOINT_PATH:
                         model = CustomFasterRCNN.load_from_checkpoint(CHECKPOINT_PATH, config=MODULE_CONFIG)
                         print("Loading weights from checkpoint...")
                     else:
                         model = CustomFasterRCNN(MODULE_CONFIG)
-
+                    # Initialize the logger
                     if LOGGER['type'].lower() == 'wandb':
                         logger = WandbLogger(project=LOGGER['project'],
                                              name=LOGGER['name'])
@@ -124,7 +127,7 @@ def main(args):
                                                    name=LOGGER['name'])
                     else:
                         raise ValueError("Invalid logger type. Please choose from: Wandb, Tensorboard")
-
+                    # Initialize the trainer
                     trainer = pl.Trainer(
                         **TRAINER_CONFIG,
                         logger=logger,
@@ -134,6 +137,7 @@ def main(args):
                             ModelCheckpoint(**CALLBACKS['model_checkpoint']),
                         ])
 
+                    # Train the model
                     if not TEST_MODEL:
                         tracker = EmissionsTracker()
                         tracker.start()
@@ -148,8 +152,6 @@ def main(args):
 
 
 if __name__ == "__main__":
-    # Make results "deterministic"
-    random.seed(0)
     # Parse the arguments
     parser = argparse.ArgumentParser(description='Script for training model.', formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument('--arch', type=str, 
