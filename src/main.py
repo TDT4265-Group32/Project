@@ -20,7 +20,7 @@ from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = args.arch # Only dataset used in the project
+    ARCHITECTURE = args.arch 
     MODE = args.mode
     MODEL_PATH = args.model_path
 
@@ -136,6 +136,7 @@ def main(args):
                             LearningRateMonitor(**CALLBACKS['learning_rate_monitor']),
                             ModelCheckpoint(**CALLBACKS['model_checkpoint']),
                         ])
+
                     # Train the model
                     if not TEST_MODEL:
                         tracker = EmissionsTracker()
@@ -144,8 +145,10 @@ def main(args):
                         trainer.fit(model, train_dataloaders=dm.train_dataloader(), val_dataloaders=dm.val_dataloader())
                         tracker.stop()
                         atexit.unregister(tracker.stop)
-                    # Test the model
-                    trainer.test(model, dataloaders=dm.train_dataloader())
+
+                    # trainer.test(model, dataloaders=dm.train_dataloader())
+
+                    pred = trainer.predict(model, dataloaders=dm.test_dataloader(), return_predictions=True)
 
 
 if __name__ == "__main__":
