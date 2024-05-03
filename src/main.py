@@ -2,10 +2,11 @@ import random
 import os
 import argparse
 import yaml
+import atexit
 
 import torch
 import lightning.pytorch as pl
-import munch
+from codecarbon import EmissionsTracker
 from lightning.pytorch.loggers import WandbLogger, TensorBoardLogger
 from lightning.pytorch.callbacks import EarlyStopping, LearningRateMonitor, ModelCheckpoint
 from pathlib import Path
@@ -26,7 +27,7 @@ def main(args):
     # Extract the dataset and partition it into training and validation sets
     extract_dataset()
     create_test_dataset()
-    partition_dataset()
+    #partition_dataset()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'export', 'all'], 'Invalid mode. Please choose from: train, validate, predict, export'
@@ -149,8 +150,14 @@ def main(args):
                             ModelCheckpoint(**CALLBACKS['model_checkpoint']),
                         ])
 
+
                     if not TEST_MODEL:
+                        tracker = EmissionsTracker()
+                        tracker.start()
+                        atexit.register(tracker.stop)
                         trainer.fit(model, train_dataloaders=dm.train_dataloader(), val_dataloaders=dm.val_dataloader())
+                        tracker.stop()
+                        atexit.unregister(tracker.stop)
 
                     trainer.test(model, dataloaders=dm.train_dataloader())
 
