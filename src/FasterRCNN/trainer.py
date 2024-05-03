@@ -32,7 +32,6 @@ class CustomFasterRCNN(pl.LightningModule):
         return {
             "optimizer": optimizer,
             "lr_scheduler": lr_scheduler,
-            #"monitor": "Validation_mAP",  # Ensure Validation_mAP is being monitored
         }
 
     def forward(self, x, y=None):
@@ -58,12 +57,8 @@ class CustomFasterRCNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
-        
-        # img = x[batch_idx].to(torch.uint8)
 
-        # img = draw_bounding_boxes(img, y_hat[batch_idx]['boxes'], y_hat[batch_idx]['labels'])
-        # imwrite(f"results/{batch_idx}.png", img)
-
+        # Calculate validation accuracy
         self.mAP.update(y_hat, y)
         acc = self.mAP.compute()
 
@@ -74,6 +69,8 @@ class CustomFasterRCNN(pl.LightningModule):
     def test_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x)
+
+        # Calculate test accuracy
         self.mAP.update(y_hat, y)
         acc = self.mAP.compute()
         self.log_dict({
@@ -86,6 +83,7 @@ class CustomFasterRCNN(pl.LightningModule):
 
         images = torch.stack(images)
 
+        # Inference time measurements
         start_time = time.perf_counter()
         with torch.no_grad():
             outputs = self.model(images)
