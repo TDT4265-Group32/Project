@@ -4,6 +4,8 @@ from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_Res
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
 from torchvision.utils import draw_bounding_boxes
+from cv2 import imwrite
+
 class CustomFasterRCNN(pl.LightningModule):
     def __init__(self, config: dict):
         super().__init__()
@@ -55,8 +57,11 @@ class CustomFasterRCNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
+        
+        img = x[batch_idx].to(torch.uint8)
 
-        img = draw_bounding_boxes(x[batch_idx], y_hat['boxes'], y_hat['labels'])
+        img = draw_bounding_boxes(img, y_hat[batch_idx]['boxes'], y_hat[batch_idx]['labels'])
+        imwrite(f"results/{batch_idx}.png", img)
 
         self.mAP.update(y_hat, y)
         acc = self.mAP.compute()
