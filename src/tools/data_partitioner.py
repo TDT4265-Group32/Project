@@ -116,5 +116,45 @@ def partition_video_dataset(num_clips: int,
     _copy_files(train_imgs, train_labels, 'train', dataset_path)
     _copy_files(val_imgs, val_labels, 'val', dataset_path)
 
+def create_test_dataset():
+    
+    target_dir = "datasets/NAPLab-LiDAR/"
+
+    test_img_dir = os.path.join(target_dir, "images", "test")
+    test_lbl_dir = os.path.join(target_dir, "labels", "test")
+    os.makedirs(test_img_dir, exist_ok=True)
+    os.makedirs(test_lbl_dir, exist_ok=True)
+    
+    image_dir = os.path.join(target_dir, "images")
+    label_dir = os.path.join(target_dir, "labels")
+    
+    # Check if test images and labels already exist in the test directory
+    images_exist = all(os.path.exists(os.path.join(test_img_dir, f"frame_{i:06d}.PNG")) for i in range(201, 302))
+    labels_exist = all(os.path.exists(os.path.join(test_lbl_dir, f"frame_{i:06d}.txt")) for i in range(201, 302))
+    
+    if images_exist and labels_exist:
+        print("Test images and labels already exist in the test directory, skipping...")
+        return
+    else:
+    # Move frames 201-301 to the test directory
+        for i in tqdm(range(201, 302), desc="Moving test images and labels"):
+            image_name = f"frame_{i:06d}.PNG"
+            label_name = f"frame_{i:06d}.txt"
+            source_image_path = os.path.join(image_dir, image_name)
+            source_label_path = os.path.join(label_dir, label_name)
+            if os.path.exists(source_image_path) and os.path.exists(source_label_path):
+                try:
+                    destination_image_path = os.path.join(test_img_dir, image_name)
+                    destination_label_path = os.path.join(test_lbl_dir, label_name)
+                    shutil.move(source_image_path, destination_image_path)
+                    shutil.move(source_label_path, destination_label_path)
+                except FileNotFoundError as e:
+                    if os.path.exists(destination_image_path) and os.path.exists(destination_label_path):
+                        continue
+                    else:
+                        raise FileNotFoundError(f"{e}: Please ensure that the test image and label directories exist.")
+
+    print("Test images and labels moved successfully.")
+
 if __name__ == "__main__":
     partition_dataset('NAPLab-LiDAR')
