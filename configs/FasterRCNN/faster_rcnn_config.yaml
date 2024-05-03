@@ -27,7 +27,7 @@ callbacks:
   learning_rate_monitor:
     logging_interval: 'step'
   model_checkpoint:
-    dirpath: ./checkpoints/FasterRCNN/NAPLab-LiDAR/FasterRCNN_SGD # Checkpoints folder + logger project + logger name
+    dirpath: ./checkpoints/FasterRCNN/NAPLab-LiDAR/FasterRCNN_testing # Checkpoints folder + logger project + logger name
     filename: best_model={epoch:02d}-val_acc={val_acc:.4f}
     auto_insert_metric_name: false
     save_weights_only: true
@@ -78,4 +78,4 @@ trainer:
 in_channels: 3
 train_split_ratio: 0.8
 data_root: ./datasets
-checkpoint_folder: ./checkpoints/FasterRCNN/
+checkpoint_folder: #./checkpoints/FasterRCNN/
