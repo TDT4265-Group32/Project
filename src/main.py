@@ -19,7 +19,7 @@ from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = 'FasterRCNN' # Only dataset used in the project
+    ARCHITECTURE = args.arch # Only dataset used in the project
     MODE = args.mode
     MODEL_PATH = args.model_path
 

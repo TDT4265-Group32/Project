@@ -1,21 +1,9 @@
 import lightning.pytorch as pl
-#from lightning.pytorch.callbacks import EarlyStopping, ModelCheckpoint, LearningRateMonitor
-#from lightning.pytorch.loggers import WandbLogger
 import torch
-#from torch import nn
 from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
-#from torchvision.ops import box_iou
-
-#from torchvision.ops import generalized_box_iou, giou_loss
-
-#from torch.utils.data import DataLoader
-#from torchvision.transforms import functional as F
-#from torchvision.transforms import v2 as T
-#from datamodule import CustomDataModule, NAPLabLiDAR
-
+from torchvision.utils import draw_bounding_boxes
 class CustomFasterRCNN(pl.LightningModule):
     def __init__(self, config: dict):
         super().__init__()
@@ -67,6 +55,9 @@ class CustomFasterRCNN(pl.LightningModule):
     def validation_step(self, batch, batch_idx):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
+
+        img = draw_bounding_boxes(x[batch_idx], y_hat['boxes'], y_hat['labels'])
+
         self.mAP.update(y_hat, y)
         acc = self.mAP.compute()
 

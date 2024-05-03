@@ -1,10 +1,9 @@
+import glob
+from PIL import Image
+
+import pytorch_lightning as pl
 import torch
 from torch.utils.data import Dataset, DataLoader
-from torchvision.transforms import functional as F
-from PIL import Image
-import pytorch_lightning as pl
-import glob
-
 from torchvision.transforms import v2 as T
 
 class NAPLabLiDAR(Dataset):
