@@ -146,8 +146,6 @@ def main(args):
 
                     pred = trainer.predict(model, dataloaders=dm.test_dataloader(), return_predictions=True)
 
-                    print(pred)
-
 
 if __name__ == "__main__":
     # Make results "deterministic"

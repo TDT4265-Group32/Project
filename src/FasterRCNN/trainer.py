@@ -1,5 +1,6 @@
 import lightning.pytorch as pl
 import torch
+import time
 from torchvision.models.detection import fasterrcnn_resnet50_fpn, FasterRCNN_ResNet50_FPN_Weights 
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchmetrics.detection.mean_ap import MeanAveragePrecision
@@ -84,8 +85,14 @@ class CustomFasterRCNN(pl.LightningModule):
         images,_ = batch
 
         images = torch.stack(images)
+
+        start_time = time.perf_counter()
         with torch.no_grad():
             outputs = self.model(images)
 
+        stop_time = time.perf_counter()
+        average_inference_time = (stop_time - start_time) / images.shape[0]
+        print(f"Average inference time: {average_inference_time}")
+        
         return outputs
 
