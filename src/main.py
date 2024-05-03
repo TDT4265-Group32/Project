@@ -20,7 +20,7 @@ from tools.video_formatter import create_video
 from tools.dataloader import extract_dataset, export_data
 
 def main(args):
-    ARCHITECTURE = args.arch # Only dataset used in the project
+    ARCHITECTURE = "FasterRCNN" #args.arch # Only dataset used in the project
     MODE = args.mode
     MODEL_PATH = args.model_path
 
@@ -134,7 +134,6 @@ def main(args):
                             ModelCheckpoint(**CALLBACKS['model_checkpoint']),
                         ])
 
-
                     if not TEST_MODEL:
                         tracker = EmissionsTracker()
                         tracker.start()
@@ -143,7 +142,11 @@ def main(args):
                         tracker.stop()
                         atexit.unregister(tracker.stop)
 
-                    trainer.test(model, dataloaders=dm.train_dataloader())
+                    # trainer.test(model, dataloaders=dm.train_dataloader())
+
+                    pred = trainer.predict(model, dataloaders=dm.test_dataloader(), return_predictions=True)
+
+                    print(pred)
 
 
 if __name__ == "__main__":

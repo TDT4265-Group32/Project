@@ -79,3 +79,13 @@ class CustomFasterRCNN(pl.LightningModule):
             "test_acc": acc['map'],
         },on_epoch=True, on_step=False, prog_bar=True, sync_dist=True)
 
+    def predict_step(self, batch):
+        # Inference logic
+        images,_ = batch
+
+        images = torch.stack(images)
+        with torch.no_grad():
+            outputs = self.model(images)
+
+        return outputs
+
