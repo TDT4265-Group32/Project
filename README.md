@@ -41,18 +41,18 @@ Before running the code, the configuration files need to be set up. The configur
 
 ### YOLOv8
 
-The configuration files for the YOLOv8 model can be found in [configs/YOLOv8/](configs/YOLOv8). The configuration files are in YAML format and contain the parameters for training, validation, prediction and exporting.
+The configuration files for the YOLOv8 model can be found in [configs/YOLOv8/config.yaml](configs/YOLOv8/config.yaml). The configuration file is in YAML format and contain the parameters for training, validation, prediction and exporting.
+
+#### Training
 
 The **"params"** section in each .yaml file needs to follow the standard format of YOLOv8 train, val and pred parameters. <u>[They can be found here](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/default.yaml)</u>. Unspecified parameters will be set to default values. Other fields are specific for this project.
-
-#### [Train](configs/YOLOv8/train.yaml)
 
 * **"model_path"**: Chosen model for the training. Usually the pretrained [yolov8m.pt](https://github.com/ultralytics/ultralytics/blob/main/ultralytics/data/explorer/gui/dash.py#L37-L41) is used.
 * **"loss_function"**: Contains booleans to indicate which loss functions to be used.
 
 **NOTE**: Results of training are saved in "runs/detect/trainX", where "X" is specified in the terminal upon starting and ending training, where highest X is usually the most recent run. This can be changed by specifying "project" and "name" in "params".
 
-#### [Val](configs/YOLOv8/val.yaml)
+#### Validation
 
 * **"model_path"**: Path to the model to be validated.
 
@@ -60,7 +60,7 @@ The **"params"** section in each .yaml file needs to follow the standard format 
 
 **NOTE**: The model is validated on the test set, which is specified in "data" in "params".
 
-#### [Pred](configs/YOLOv8/pred.yaml)
+#### Prediction
 
 * **"model_path"**: Path to the model to be used for prediction.
 * **"video.create_video"**: Boolean to indicate whether to create a video from the predictions.
@@ -71,7 +71,7 @@ The **"params"** section in each .yaml file needs to follow the standard format 
 
 **NOTE**: Prediction images are by default saved in "results/nameOfArchitecture".
 
-#### [Export](configs/YOLOv8/export.yaml)
+#### Export
 
 * **"model_path"**: Path to the model to be exported.
 
