@@ -27,7 +27,7 @@ def main(args):
     # Extract the dataset and partition it into training and validation sets
     extract_dataset()
     create_test_dataset()
-    #partition_dataset()
+    partition_dataset()
 
     assert ARCHITECTURE in ['YOLOv8', 'FasterRCNN'], 'Invalid architecture. Please choose from: YOLOv8, FasterRCNN'
     assert MODE in ['train', 'val', 'pred', 'export', 'all'], 'Invalid mode. Please choose from: train, validate, predict, export'
@@ -127,7 +127,7 @@ def main(args):
                     dm = CustomDataModule(**CUSTOMDATAMODULE)
                     
                     if CHECKPOINT_PATH:
-                        model = CustomFasterRCNN.load_from_checkpoint(CHECKPOINT_PATH, MODULE_CONFIG)
+                        model = CustomFasterRCNN.load_from_checkpoint(CHECKPOINT_PATH, config=MODULE_CONFIG)
                         print("Loading weights from checkpoint...")
                     else:
                         model = CustomFasterRCNN(MODULE_CONFIG)

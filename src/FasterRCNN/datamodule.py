@@ -70,7 +70,7 @@ class CustomDataModule(pl.LightningDataModule):
         val_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
 
         test_img_paths = glob.glob("datasets/NAPLab-LiDAR/images/test/*.PNG")
-        test_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/val/*.txt")
+        test_annotations = glob.glob("datasets/NAPLab-LiDAR/labels/test/*.txt")
 
         assert len(train_img_paths) > 0, "No training images found"
         assert len(val_img_paths) > 0, "No validation images found"

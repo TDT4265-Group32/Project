@@ -58,10 +58,10 @@ class CustomFasterRCNN(pl.LightningModule):
         x, y = batch
         y_hat = self.forward(x, y)  # Pass both x and y to forward
         
-        img = x[batch_idx].to(torch.uint8)
+        # img = x[batch_idx].to(torch.uint8)
 
-        img = draw_bounding_boxes(img, y_hat[batch_idx]['boxes'], y_hat[batch_idx]['labels'])
-        imwrite(f"results/{batch_idx}.png", img)
+        # img = draw_bounding_boxes(img, y_hat[batch_idx]['boxes'], y_hat[batch_idx]['labels'])
+        # imwrite(f"results/{batch_idx}.png", img)
 
         self.mAP.update(y_hat, y)
         acc = self.mAP.compute()
